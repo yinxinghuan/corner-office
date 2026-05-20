@@ -1,0 +1,423 @@
+// ─── Tokens (parody-series typographic family) ─────────────────────────
+@font-display: 'Playfair Display', 'Times New Roman', serif;
+@font-rye:     'Rye', 'Playfair Display', serif;
+@font-ui:      'Inter', system-ui, -apple-system, sans-serif;
+
+@ink:      #f4ecd8;       // off-white ticket paper
+@ink-dim:  #c8b290;
+@brand:    #d7b56a;       // brass
+@red:      #c1322a;
+@blue:     #2e6cb8;
+@dark:     #0a0d18;
+
+@radius-card: 14px;
+
+// ─── Root layout ───────────────────────────────────────────────────────
+
+.co-root {
+  position: absolute;
+  inset: 0;
+  background: @dark;
+  color: @ink;
+  overflow: hidden;
+  font-family: @font-ui;
+  display: flex;
+  flex-direction: column;
+
+  &--poster {
+    background: linear-gradient(180deg, #280611 0%, #0a0d18 100%);
+  }
+}
+
+.co-stage {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.co-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+// ─── Tagline ribbon ────────────────────────────────────────────────────
+.co-tagline {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%) rotate(-1.4deg);
+  font-family: @font-display;
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: rgba(244, 236, 216, 0.55);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+// ─── Watermark ─────────────────────────────────────────────────────────
+.co-watermark {
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  width: 58px;
+  height: auto;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+// ─── Floor-ping toast (every 10 floors) ────────────────────────────────
+@keyframes co-floor-ping {
+  0%   { opacity: 0; transform: translate(-50%, 8px) scale(0.92); }
+  18%  { opacity: 1; transform: translate(-50%, 0)  scale(1.0); }
+  82%  { opacity: 1; transform: translate(-50%, 0)  scale(1.0); }
+  100% { opacity: 0; transform: translate(-50%, -8px) scale(0.96); }
+}
+.co-floor-ping {
+  position: absolute;
+  left: 50%;
+  top: 22%;
+  transform: translateX(-50%);
+  font-family: @font-rye;
+  font-size: 36px;
+  letter-spacing: 0.06em;
+  color: @brand;
+  text-shadow: 0 2px 0 rgba(0,0,0,0.45);
+  pointer-events: none;
+  animation: co-floor-ping 1.6s ease-out forwards;
+}
+
+// ─── Tutorial overlay (loops until first pointerdown) ─────────────────
+@keyframes co-tut-finger-x {
+  0%, 100% { transform: translateX(-72px); }
+  50%      { transform: translateX(72px); }
+}
+@keyframes co-tut-fade {
+  0%, 100% { opacity: 0.35; }
+  50%      { opacity: 0.95; }
+}
+@keyframes co-tut-trail {
+  0%   { stroke-dashoffset: 200; opacity: 0; }
+  15%  { opacity: 0.95; }
+  50%  { stroke-dashoffset: 0;   opacity: 0.95; }
+  80%  { opacity: 0.6; }
+  100% { stroke-dashoffset: -200; opacity: 0; }
+}
+
+.co-tutorial {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+
+  &__svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  &__trail {
+    stroke-dasharray: 200;
+    animation: co-tut-trail 2.6s ease-in-out infinite;
+  }
+  &__finger {
+    position: absolute;
+    left: 50%;
+    top: 72%;
+    width: 56px;
+    height: 56px;
+    transform: translateX(-50%);
+    animation: co-tut-finger-x 2.6s ease-in-out infinite;
+  }
+  &__finger-icon {
+    width: 100%;
+    height: 100%;
+    fill: #fff;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.6));
+  }
+  &__label {
+    position: absolute;
+    left: 50%;
+    bottom: 20%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-align: center;
+    animation: co-tut-fade 2.6s ease-in-out infinite;
+  }
+  &__label-line {
+    font-family: @font-rye;
+    font-size: 20px;
+    color: @ink;
+    letter-spacing: 0.10em;
+    text-shadow: 0 2px 0 rgba(0,0,0,0.45);
+
+    &--small {
+      font-family: @font-ui;
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      color: @ink-dim;
+    }
+  }
+}
+
+// ─── End screen (receipt aesthetic) ────────────────────────────────────
+.co-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 8;
+  background: radial-gradient(circle at 50% 40%, rgba(0,0,0,0.55), rgba(0,0,0,0.85));
+  padding: 24px;
+
+  &__inner {
+    position: relative;
+    background: #f4ecd8;
+    color: #1a1109;
+    width: min(94%, 360px);
+    padding: 22px 22px 18px;
+    border: 1.5px solid #1a1109;
+    box-shadow: 0 14px 26px rgba(0,0,0,0.55), 0 2px 0 rgba(0,0,0,0.25);
+    border-radius: 4px;
+    background-image:
+      repeating-linear-gradient(0deg,
+        rgba(0,0,0,0) 0,
+        rgba(0,0,0,0) 18px,
+        rgba(26,17,9,0.05) 18px,
+        rgba(26,17,9,0.05) 19px);
+  }
+  // notched corners (perforation hint)
+  &__notch {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: @dark;
+    border-radius: 50%;
+
+    &--tl { top: -5px; left: -5px; }
+    &--tr { top: -5px; right: -5px; }
+    &--bl { bottom: -5px; left: -5px; }
+    &--br { bottom: -5px; right: -5px; }
+  }
+}
+
+.co-stamp-bar {
+  display: flex;
+  justify-content: space-between;
+  font-family: @font-ui;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  font-size: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1.5px dashed #1a1109;
+  margin-bottom: 14px;
+}
+
+.co-ink-stamp {
+  position: absolute;
+  font-family: @font-rye;
+  font-size: 28px;
+  letter-spacing: 0.08em;
+  color: rgba(193, 50, 42, 0.85);
+  border: 3.5px double rgba(193, 50, 42, 0.85);
+  padding: 6px 12px;
+  border-radius: 4px;
+  pointer-events: none;
+  white-space: nowrap;
+
+  &--good {
+    color: rgba(46, 108, 184, 0.85);
+    border-color: rgba(46, 108, 184, 0.85);
+  }
+}
+
+.co-end__header {
+  text-align: center;
+  margin: 6px 0 14px;
+}
+.co-end__title {
+  font-family: @font-rye;
+  font-size: 28px;
+  letter-spacing: 0.04em;
+  line-height: 1.05;
+}
+.co-end__sub {
+  font-family: @font-display;
+  font-style: italic;
+  font-size: 13px;
+  color: rgba(26,17,9,0.65);
+  margin-top: 4px;
+}
+
+.co-new-best {
+  text-align: center;
+  font-family: @font-rye;
+  font-size: 14px;
+  letter-spacing: 0.18em;
+  color: @red;
+  padding-bottom: 6px;
+}
+
+.co-final {
+  text-align: center;
+  margin: 6px 0 14px;
+
+  &__label {
+    font-family: @font-ui;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: rgba(26,17,9,0.60);
+  }
+  &__value {
+    font-family: @font-display;
+    font-weight: 900;
+    font-size: 56px;
+    line-height: 1;
+    margin-top: 2px;
+  }
+}
+
+.co-stats {
+  display: grid;
+  gap: 8px;
+  border-top: 1.5px dashed #1a1109;
+  padding-top: 10px;
+
+  &--3 { grid-template-columns: repeat(3, 1fr); }
+  &__cell { text-align: center; }
+  &__label {
+    font-family: @font-ui;
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(26,17,9,0.55);
+  }
+  &__value {
+    font-family: @font-display;
+    font-weight: 800;
+    font-size: 20px;
+    line-height: 1.05;
+    margin-top: 2px;
+  }
+}
+
+.co-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.co-btn {
+  flex: 1;
+  border: none;
+  font-family: @font-ui;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.10em;
+  padding: 12px 0;
+  border-radius: 4px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+
+  &--primary {
+    background: #1a1109;
+    color: #f4ecd8;
+    border: 2px solid #1a1109;
+  }
+  &--ghost {
+    background: #f4ecd8;
+    color: #1a1109;
+    border: 2px solid #1a1109;
+  }
+
+  &:active { transform: translateY(1px); }
+}
+
+// ─── Splash card (poster mode) ─────────────────────────────────────────
+
+.co-splash {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 36px 24px 40px;
+  background: linear-gradient(180deg, #2a0612 0%, #11091a 60%, #060810 100%);
+  text-align: center;
+
+  // Darken footer band behind the title so the windows don't fight it
+  &::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 42%;
+    background: linear-gradient(180deg,
+      rgba(6, 8, 16, 0) 0%,
+      rgba(6, 8, 16, 0.75) 45%,
+      rgba(6, 8, 16, 0.95) 100%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  &__tower {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    opacity: 0.92;
+    svg { width: 78%; max-width: 320px; height: auto; }
+  }
+  &__title {
+    position: relative;
+    font-family: @font-rye;
+    font-size: clamp(36px, 9vw, 64px);
+    color: @ink;
+    letter-spacing: 0.04em;
+    text-shadow:
+      0 0 14px rgba(193, 50, 42, 0.45),
+      0 4px 0  rgba(0,0,0,0.55);
+    margin-bottom: 6px;
+    z-index: 2;
+  }
+  &__tagline {
+    position: relative;
+    font-family: @font-display;
+    font-style: italic;
+    font-size: clamp(14px, 3.4vw, 18px);
+    color: @ink-dim;
+    margin-bottom: 22px;
+    z-index: 2;
+  }
+  &__chip {
+    position: relative;
+    font-family: @font-ui;
+    font-weight: 800;
+    font-size: 10px;
+    letter-spacing: 0.30em;
+    color: @brand;
+    border: 1px solid @brand;
+    padding: 5px 10px;
+    border-radius: 3px;
+    z-index: 2;
+  }
+}
