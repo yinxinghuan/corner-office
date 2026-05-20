@@ -95,9 +95,7 @@ export function EndScreen({ stats, best, onAgain, onOpenLeaderboard }: Props) {
           </div>
           <div className="co-stats__cell">
             <div className="co-stats__label">{t('pickups')}</div>
-            <div className="co-stats__value">
-              {stats.pickupsLatte + stats.pickupsVest + stats.pickupsAdderall}
-            </div>
+            <div className="co-stats__value">{stats.pickupsLatte}</div>
           </div>
           <div className="co-stats__cell">
             <div className="co-stats__label">{t('burnouts')}</div>

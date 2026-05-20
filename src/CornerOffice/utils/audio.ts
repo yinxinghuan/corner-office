@@ -102,17 +102,6 @@ export function sfxLatte() {
   setTimeout(() => tone(1320, 0.10, 0.07, 'square'), 50);
 }
 
-/** Vest pickup — heavier "armor up" thunk. */
-export function sfxVest() {
-  tone(220, 0.10, 0.10, 'sawtooth', 800);
-  setTimeout(() => tone(440, 0.14, 0.10, 'triangle'), 40);
-}
-
-/** Adderall pickup — punchy upward zip. */
-export function sfxAdderall() {
-  sweep(440, 1800, 0.20, 0.10, 'square');
-}
-
 /** Burnout hit — angry buzz + low thud. */
 export function sfxBurnout() {
   sweep(380, 80, 0.32, 0.18, 'sawtooth');

@@ -1,30 +1,26 @@
-// ─── Game-wide constants ────────────────────────────────────────────────
-// World coords are in CSS pixels relative to a virtual portrait playfield
-// of width GAME_W (logical). The camera scrolls upward as the player climbs;
-// `worldY` increases going DOWN (screen-space convention).
+// v0.2 — radically simplified type surface.
+//
+// Cut: chair, meeting, coffin platforms; vest, adderall pickups. The
+// fewer moving parts, the less the player has to decode at a glance.
 
 export const GAME_W = 360;
-export const PLAYER_W = 40;
-export const PLAYER_H = 56;
+export const PLAYER_W = 46;
+export const PLAYER_H = 64;
 
-export const GRAVITY = 0.0014;                  // px / ms^2
-export const JUMP_V_BASE = -0.78;               // px / ms — normal platform
-export const JUMP_V_SPRING = -1.30;             // kombucha tap
-export const JUMP_V_ADDERALL = -1.55;           // rocket hop
-export const HORIZONTAL_LERP = 0.18;            // smoothing toward target x
-export const MAX_FALL_SPEED = 1.6;
-export const FLOOR_HEIGHT_PX = 70;              // 1 floor ≈ 70 world px climbed
+// Snappier physics than v0.1.
+export const GRAVITY = 0.0020;                  // px / ms^2 (was .0014)
+export const JUMP_V_BASE = -0.88;               // px / ms (was -.78)
+export const JUMP_V_SPRING = -1.45;             // spring desk
+export const MAX_FALL_SPEED = 1.8;
+export const FLOOR_HEIGHT_PX = 70;
 
-export const TOP_FLOOR = 100;                   // "EXECUTIVE LIFETIME" gate
+export const TOP_FLOOR = 100;                   // EXECUTIVE LIFETIME goal
 export const BURNOUT_PENALTY_FLOORS = 3;
 
 export type PlatformKind =
-  | 'desk'          // basic — brown wood
-  | 'chair'         // basic — gray swivel
-  | 'meeting'       // basic — orange rust ring (wider)
-  | 'kombucha'      // spring — teal tap
-  | 'moving_desk'   // slides left-right (rare, > floor 15)
-  | 'coffin';       // executive lifetime — only at TOP_FLOOR
+  | 'desk'          // normal bounce — wood brown
+  | 'spring'        // higher bounce — bright teal coil
+  | 'moving';       // slides left↔right (>fl.10) — slate
 
 export interface Platform {
   id: number;
@@ -41,21 +37,19 @@ export interface Platform {
   squishUntil?: number;
 }
 
-export type PickupKind = 'latte' | 'vest' | 'adderall';
-
 export interface Pickup {
   id: number;
-  kind: PickupKind;
+  /** v0.2 has only one pickup kind — kept as a field so the future can
+   *  re-introduce variants without touching the world generator. */
+  kind: 'latte';
   x: number;
   y: number;
   taken: boolean;
 }
 
-export type HazardKind = 'burnout';
-
 export interface Hazard {
   id: number;
-  kind: HazardKind;
+  kind: 'burnout';
   x: number;
   y: number;
   /** Oscillation phase seed (radians) for floaty motion. */
@@ -66,12 +60,9 @@ export interface Hazard {
 export interface Player {
   x: number;            // world x (center)
   y: number;            // world y (bottom of sprite — feet)
-  vx: number;
-  vy: number;
-  targetX: number;      // smoothed input target
-  facing: 1 | -1;
-  vested: boolean;      // stock-vest shield, absorbs next burnout
-  adderallNext: boolean; // next bounce uses ADDERALL hop
+  vx: number;           // current horizontal velocity (px/ms)
+  vy: number;           // current vertical velocity (px/ms)
+  targetX: number;      // pointer target — drives horizontal tracking
   /** Brief invuln window after a hit so we don't multi-trigger. */
   hitUntil: number;
 }
@@ -81,8 +72,6 @@ export type GameState = 'playing' | 'gameover' | 'cleared';
 export interface RunStats {
   finalFloor: number;
   pickupsLatte: number;
-  pickupsVest: number;
-  pickupsAdderall: number;
   burnouts: number;
   isNewBest: boolean;
   cleared: boolean;       // reached TOP_FLOOR
