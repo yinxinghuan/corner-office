@@ -7,7 +7,7 @@
 // pickups, HUD, and floor markers stay programmatic.
 
 import {
-  PLAYER_W, PLAYER_H, FLOOR_HEIGHT_PX,
+  PLAYER_W, PLAYER_H, FLOOR_HEIGHT_PX, LAND_ANIM_MS,
   type Platform, type Pickup, type Hazard, type Player,
 } from '../types';
 import type { Sprites } from './sprites';
@@ -245,7 +245,14 @@ export function drawPickup(
   ctx.restore();
 }
 
-// ─── Burnout hazard ──────────────────────────────────────────────────
+// ─── Hazard (URGENT email sprite, static position) ────────────────────
+//
+// v0.4 replaced the spiky red bubble with an iconic envelope so the
+// danger reads at a glance ("don't touch incoming spam"). The hazard
+// itself no longer oscillates — the game logic keeps `h.x = h.baseX`
+// so the player can read its position and plan a path around it.
+// The visual ALONE breathes: a subtle pulse-scale so it still feels
+// alive.
 
 export function drawHazard(
   ctx: CanvasRenderingContext2D,
@@ -253,34 +260,17 @@ export function drawHazard(
   screenY: number,
   scale: number,
   now: number,
+  sprites: Sprites,
 ) {
-  const pulse = 1 + Math.sin(now / 160 + h.phase) * 0.10;
+  const pulse = 1 + Math.sin(now / 240 + h.phase) * 0.06;
+  // Sprite is 120×100 viewBox; we draw 50 logical px wide for a clear
+  // hazard footprint that matches the collision radius below.
+  const W = 56;
+  const H = 56 * (100 / 120);
   ctx.save();
   ctx.translate(h.x * scale, screenY);
   ctx.scale(pulse * scale, pulse * scale);
-
-  const r = 14;
-  const grad = ctx.createRadialGradient(0, 0, 2, 0, 0, r + 4);
-  grad.addColorStop(0, 'rgba(255, 200, 160, 0.95)');
-  grad.addColorStop(0.5, 'rgba(214, 50, 36, 0.95)');
-  grad.addColorStop(1, 'rgba(120, 12, 8, 0.20)');
-  ctx.fillStyle = grad;
-  ctx.beginPath();
-  const points = 9;
-  for (let i = 0; i < points * 2; i++) {
-    const ang = (i / (points * 2)) * Math.PI * 2 + h.phase;
-    const rad = i % 2 === 0 ? r + 4 : r - 2;
-    const x = Math.cos(ang) * rad;
-    const y = Math.sin(ang) * rad;
-    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-  }
-  ctx.closePath();
-  ctx.fill();
-  ctx.fillStyle = '#fff6e8';
-  ctx.font = 'bold 14px Inter, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('!', 0, 0);
+  ctx.drawImage(sprites.email, -W / 2, -H / 2, W, H);
   ctx.restore();
 }
 
@@ -298,13 +288,37 @@ export function drawPlayer(
   p: Player,
   screenY: number,
   scale: number,
-  _now: number,
+  now: number,
   sprites: Sprites,
 ) {
   const tilt = Math.max(-0.18, Math.min(0.18, p.vx * 0.32));
-  const stretch = Math.max(-0.14, Math.min(0.14, -p.vy * 0.09));
-  const sx = 1 - stretch * 0.45;
-  const sy = 1 + stretch;
+
+  // Vertical squash/stretch — two paths:
+  //   (a) when a landing animation is active, override with a keyframed
+  //       compress (heavy squash) → snap up (stretch) → settle
+  //   (b) otherwise smooth from current vy
+  let sx: number, sy: number;
+  if (now < p.landAnimUntil) {
+    const remaining = p.landAnimUntil - now;
+    const t = 1 - remaining / LAND_ANIM_MS;     // 0..1, time since landing
+    if (t < 0.28) {
+      // Compress phase: heavy squash for ~70ms. Sharp ease-in.
+      const k = t / 0.28;
+      const compress = 0.40 * Math.sin(k * Math.PI * 0.5);  // up to .40
+      sy = 1 - compress;
+      sx = 1 + compress * 0.55;
+    } else {
+      // Snap-up phase: stretch then settle back. Ease-out cubic.
+      const k = (t - 0.28) / 0.72;
+      const peak = 0.32 * (1 - k) * Math.pow(1 - k, 0.6);
+      sy = 1 + peak;
+      sx = 1 - peak * 0.40;
+    }
+  } else {
+    const stretch = Math.max(-0.14, Math.min(0.14, -p.vy * 0.09));
+    sx = 1 - stretch * 0.45;
+    sy = 1 + stretch;
+  }
 
   // Sprite native aspect 256×320 (4:5). We size by PLAYER_H so the
   // body height matches the collision box; the briefcase naturally
@@ -334,7 +348,7 @@ export function drawPlayer(
   ctx.restore();
 
   // hit flash overlay
-  if (_now < p.hitUntil) {
+  if (now < p.hitUntil) {
     ctx.save();
     ctx.fillStyle = 'rgba(255, 78, 60, 0.32)';
     ctx.beginPath();

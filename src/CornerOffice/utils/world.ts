@@ -109,10 +109,25 @@ function addPlatformRow(chunk: WorldChunk, y: number, floor: number, _startY: nu
     });
   }
 
-  // Burnout chance — none below fl.7, modest growth thereafter.
+  // URGENT email chance — none below fl.7, modest growth thereafter.
+  // Spawned with two rules so the player can always perceive a safe
+  // path:
+  //  • horizontally offset by ≥ 56 logical px from the platform's
+  //    center, so at least one side of the platform stays clean
+  //  • vertically lifted 60-95 px above the platform, leaving headroom
+  //    that the player can read on approach
   if (floor >= 7 && Math.random() < 0.05 + Math.min(0.22, floor / 140)) {
-    const hx = rand(30, GAME_W - 30);
-    const hy = y - rand(30, 58);
+    const platformX = x;
+    const minOffset = 56;
+    const sideDir = Math.random() < 0.5 ? -1 : 1;
+    // Try the chosen side first; if it puts the email off the playfield,
+    // flip to the other side.
+    let hx = platformX + sideDir * (minOffset + rand(0, 28));
+    if (hx < 36 || hx > GAME_W - 36) {
+      hx = platformX - sideDir * (minOffset + rand(0, 28));
+    }
+    hx = clamp(hx, 36, GAME_W - 36);
+    const hy = y - rand(60, 95);
     chunk.hazards.push({
       id: id(),
       kind: 'burnout',

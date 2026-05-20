@@ -3,7 +3,7 @@ import {
   GAME_W, PLAYER_W, PLAYER_H,
   GRAVITY, JUMP_V_BASE, JUMP_V_SPRING,
   MAX_FALL_SPEED, FLOOR_HEIGHT_PX,
-  TOP_FLOOR, BURNOUT_PENALTY_FLOORS,
+  TOP_FLOOR, BURNOUT_PENALTY_FLOORS, LAND_ANIM_MS,
   HORIZONTAL_DECAY_PER_MS, CAMERA_DECAY_PER_MS,
   type GameState, type RunStats, type Player, type Platform,
 } from '../types';
@@ -59,6 +59,8 @@ export function useCornerOffice() {
   const dragRef = useRef<{ active: boolean }>({ active: false });
   const toastsRef = useRef<Toast[]>([]);
   const dustRef = useRef<DustParticle[]>([]);
+  /** Active screen-shake state — amp (CSS px) decays linearly to 0 at `until`. */
+  const shakeRef = useRef<{ amp: number; until: number }>({ amp: 0, until: 0 });
   const nextToastId = useRef(1);
   const interactedRef = useRef(false);
   const runStatsRef = useRef({ pickupsLatte: 0, burnouts: 0 });
@@ -105,7 +107,9 @@ export function useCornerOffice() {
       vy: 0,
       targetX: GAME_W / 2,
       hitUntil: 0,
+      landAnimUntil: 0,
     };
+    shakeRef.current = { amp: 0, until: 0 };
     worldRef.current = seedDemoOnly(startWorldY);
     setFloorDisplay(0);
     setStats(null);
@@ -220,13 +224,18 @@ export function useCornerOffice() {
         }
       }
 
-      // ── Hazards ──
+      // ── Hazards — static, no oscillation in v0.4 ──
+      // The hazard hovers at a fixed (baseX, y) so the player can read
+      // it from below and choose a side to bounce on. The sprite's
+      // pulse is cosmetic only; collision uses the static position.
       for (const h of world.hazards) {
-        h.x = h.baseX + Math.sin(now / 700 + h.phase) * 22;
+        h.x = h.baseX;
         if (now > player.hitUntil) {
           const dxh = h.x - player.x;
           const dyh = h.y - (player.y - PLAYER_H / 2);
-          if (dxh * dxh + dyh * dyh < (20 + 18) * (20 + 18) * 0.36) {
+          // Smaller effective radius than the sprite (~28px) so it
+          // feels like the envelope BODY hit you, not the glow halo.
+          if (dxh * dxh + dyh * dyh < 28 * 28) {
             handleBurnout(player, now);
           }
         }
@@ -275,6 +284,18 @@ export function useCornerOffice() {
     // ── Render ─────────────────────────────────────────────────────────
     const floor = maxFloorRef.current;
     const redness = Math.min(0.95, floor / 70);
+
+    // Screen shake — random ± offset that decays to 0 by `until`.
+    let shakeX = 0, shakeY = 0;
+    if (now < shakeRef.current.until) {
+      const k = (shakeRef.current.until - now) / 130;
+      const a = shakeRef.current.amp * k;
+      shakeX = (Math.random() - 0.5) * a * 2;
+      shakeY = (Math.random() - 0.5) * a * 2;
+    }
+    ctx.save();
+    if (shakeX || shakeY) ctx.translate(shakeX, shakeY);
+
     drawBackground(ctx, cssW, cssH, redness);
     drawLobbySilhouette(ctx, cssW, cssH, startWorldYRef.current, cameraYRef.current, scale);
     drawFloorMarkers(ctx, cssW, cssH, startWorldYRef.current, cameraYRef.current, scale);
@@ -296,7 +317,7 @@ export function useCornerOffice() {
     for (const h of world.hazards) {
       const sy = worldToScreenY(h.y);
       if (sy < -40 || sy > cssH + 40) continue;
-      drawHazard(ctx, h, sy, scale, now);
+      drawHazard(ctx, h, sy, scale, now, sprites);
     }
 
     drawPlayer(ctx, player, worldToScreenY(player.y), scale, now, sprites);
@@ -313,6 +334,9 @@ export function useCornerOffice() {
         now - ts.born, ts.life, ts.color);
     }
 
+    ctx.restore();  // end screen-shake transform
+
+    // RedTint + HUD draw OUTSIDE the shake so they stay rock-stable.
     drawRedTint(ctx, cssW, cssH, redness);
     drawHUD(ctx, cssW, floor);
 
@@ -322,25 +346,37 @@ export function useCornerOffice() {
   // ─── Events ─────────────────────────────────────────────────────────
   const landOn = (p: Platform, player: Player, now: number) => {
     player.y = p.y;
+    const wasFalling = player.vy;
     if (p.kind === 'spring') { player.vy = JUMP_V_SPRING; sfxSpring(); }
     else { player.vy = JUMP_V_BASE; sfxBounce(); }
     p.squishUntil = now + 200;
-    // Puff dust on every non-spring landing — spring is too "machine-y"
-    // for organic dust.
-    if (p.kind !== 'spring') spawnDust(p.x, p.y, now);
+    // Keyframed compress-then-snap on the character. The squash itself
+    // doesn't depend on vy — every landing kicks the same anim so the
+    // hit reads cleanly.
+    player.landAnimUntil = now + LAND_ANIM_MS;
+    // Dust + shake scale with how heavy the impact was.
+    if (p.kind !== 'spring') spawnDust(p.x, p.y, now, wasFalling);
+    // Screen shake on every landing — bigger on spring + on heavy falls.
+    const shakeAmp = p.kind === 'spring' ? 4 : Math.min(3.5, wasFalling * 1.6);
+    if (shakeAmp > 0.5) {
+      shakeRef.current = { amp: shakeAmp, until: now + 130 };
+    }
   };
 
-  const spawnDust = (x: number, yWorld: number, now: number) => {
+  const spawnDust = (x: number, yWorld: number, now: number, fallVy: number) => {
+    // Puff size scales with fall velocity. Doodle Jump's bounce vy is ~0.8;
+    // a long fall through a missed platform brings it closer to MAX_FALL_SPEED.
+    const intensity = Math.min(1.8, 0.6 + fallVy * 0.5);
     const make = (side: -1 | 1): DustParticle => ({
       x: x + side * 14,
       yWorld,
       born: now,
-      life: 380,
+      life: 420,
       side,
-      motes: Array.from({ length: 4 }, () => ({
-        dx: (Math.random() - 0.5) * 6,
-        dy: -Math.random() * 4,
-        r: 1.4 + Math.random() * 1.6,
+      motes: Array.from({ length: 5 }, () => ({
+        dx: (Math.random() - 0.5) * 8 * intensity,
+        dy: -Math.random() * 5 * intensity,
+        r: (1.6 + Math.random() * 2.0) * intensity,
       })),
     });
     dustRef.current.push(make(-1));

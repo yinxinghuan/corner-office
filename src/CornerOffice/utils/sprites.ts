@@ -9,12 +9,14 @@ import workerUrl from '../img/worker.svg';
 import deskUrl   from '../img/desk.svg';
 import printerUrl from '../img/printer.svg';
 import chairUrl  from '../img/chair.svg';
+import emailUrl  from '../img/email.svg';
 
 export interface Sprites {
   worker:  HTMLImageElement;
   desk:    HTMLImageElement;
   printer: HTMLImageElement;
   chair:   HTMLImageElement;
+  email:   HTMLImageElement;
 }
 
 function load(url: string): HTMLImageElement {
@@ -32,6 +34,7 @@ export function getSprites(): Sprites {
     desk:    load(deskUrl),
     printer: load(printerUrl),
     chair:   load(chairUrl),
+    email:   load(emailUrl),
   };
   return cached;
 }
@@ -43,5 +46,6 @@ export function spritesReady(s: Sprites): boolean {
   return s.worker.naturalWidth > 0
     && s.desk.naturalWidth > 0
     && s.printer.naturalWidth > 0
-    && s.chair.naturalWidth > 0;
+    && s.chair.naturalWidth > 0
+    && s.email.naturalWidth > 0;
 }

@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 100" width="120" height="100">
+  <!-- URGENT email — replaces the red burnout bubble. Static + iconic. -->
+
+  <!-- pulsing red glow ring (so the dangerous one reads from far away) -->
+  <circle cx="60" cy="52" r="50" fill="none" stroke="#c1322a" stroke-width="2" opacity="0.35"/>
+  <circle cx="60" cy="52" r="42" fill="none" stroke="#c1322a" stroke-width="2" opacity="0.55"/>
+
+  <!-- envelope back -->
+  <rect x="20" y="32" width="80" height="50" rx="2" fill="#f4ecd8" stroke="#0a060a" stroke-width="2.5"/>
+  <!-- flap (open V) -->
+  <path d="M 20 32 L 60 60 L 100 32 Z" fill="#e3d4b0" stroke="#0a060a" stroke-width="2"/>
+  <!-- envelope inner lines -->
+  <line x1="20" y1="32" x2="60" y2="58" stroke="#0a060a" stroke-width="1.5" opacity="0.7"/>
+  <line x1="100" y1="32" x2="60" y2="58" stroke="#0a060a" stroke-width="1.5" opacity="0.7"/>
+
+  <!-- URGENT stamp — tilted red rectangle on the envelope front -->
+  <g transform="rotate(-8 60 70)">
+    <rect x="32" y="60" width="56" height="18" fill="none" stroke="#c1322a" stroke-width="2.5"/>
+    <text x="60" y="73" font-family="Inter, sans-serif" font-size="11" font-weight="800"
+          fill="#c1322a" text-anchor="middle" letter-spacing="1">URGENT</text>
+  </g>
+
+  <!-- red ! badge in upper-right corner -->
+  <circle cx="96" cy="22" r="14" fill="#c1322a" stroke="#0a060a" stroke-width="2"/>
+  <text x="96" y="28" font-family="Inter, sans-serif" font-size="18" font-weight="900"
+        fill="#fff6e8" text-anchor="middle">!</text>
+
+  <!-- motion lines: three radial dashes around the envelope, suggesting "INCOMING" -->
+  <g stroke="#c1322a" stroke-width="2" stroke-linecap="round">
+    <line x1="6" y1="14" x2="14" y2="22"/>
+    <line x1="6" y1="56" x2="16" y2="56"/>
+    <line x1="14" y1="92" x2="22" y2="84"/>
+  </g>
+</svg>
