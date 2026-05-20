@@ -12,22 +12,48 @@ import {
 } from '../types';
 import type { Sprites } from './sprites';
 
-// ─── Background ───────────────────────────────────────────────────────
+// ─── Photocopy palette ────────────────────────────────────────────────
+const PAPER       = '#ebe4d0';   // cream paper
+const PAPER_DK    = '#d4cdb8';   // shadow on paper
+const PAPER_DKR   = '#b5ae9a';   // deep shadow
+const INK         = '#0e0a05';   // photocopy black
+const STAMP_RED   = '#b22b1f';   // rubber-stamp / URGENT accent
+
+// ─── Background — a stack of overlapping document pages ────────────────
+//
+// The dark night-sky gradient is replaced with a cream paper field. As
+// the player climbs, the background SUBTLY darkens to a more soiled,
+// burnt-document look — the "redness" still drives a corner-of-page
+// scorch that intensifies on high floors.
 
 export function drawBackground(
   ctx: CanvasRenderingContext2D,
   cssW: number, cssH: number,
   redness: number,
 ) {
-  const top = mix('#1c0a14', '#3f0a14', redness);
-  const mid = mix('#0c121e', '#1e0610', redness);
-  const bot = mix('#06080f', '#0e0408', redness);
+  // Base paper field — soft warm cream that gets slightly toner-burnt up high.
+  const top = mix(PAPER, '#9a6f5a', redness * 0.4);
+  const bot = mix(PAPER_DK, '#7a5048', redness * 0.4);
   const grad = ctx.createLinearGradient(0, 0, 0, cssH);
   grad.addColorStop(0, top);
-  grad.addColorStop(0.55, mid);
   grad.addColorStop(1, bot);
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, cssW, cssH);
+
+  // Subtle paper-grain dots (tiny static stipple, generated via PRNG by
+  // the camera-y so the pattern moves with the page).
+  ctx.fillStyle = 'rgba(14, 10, 5, 0.05)';
+  const cols = Math.ceil(cssW / 5);
+  const rows = Math.ceil(cssH / 5);
+  for (let r = 0; r < rows; r += 1) {
+    for (let c = 0; c < cols; c += 1) {
+      // Deterministic noise pattern
+      const seed = (r * 73856093) ^ (c * 19349663);
+      if (((seed >>> 0) % 47) < 3) {
+        ctx.fillRect(c * 5, r * 5, 1, 1);
+      }
+    }
+  }
 }
 
 // Floor → department name. v0.3 ties altitude to a corporate hierarchy
@@ -54,7 +80,8 @@ export function drawFloorMarkers(
   scale: number,
 ) {
   ctx.save();
-  ctx.font = `bold ${Math.round(10 * scale)}px Inter, sans-serif`;
+  // Typewriter / monospace for the "department directory" feel.
+  ctx.font = `bold ${Math.round(11 * scale)}px Courier, monospace`;
   ctx.textAlign = 'right';
   ctx.textBaseline = 'middle';
 
@@ -68,24 +95,31 @@ export function drawFloorMarkers(
     const sy = (worldY - cameraY) * scale;
     if (sy < -16 || sy > cssH + 16) continue;
 
-    ctx.strokeStyle = 'rgba(244, 236, 216, 0.08)';
+    // Faint dashed rule — like a faxed margin line
+    ctx.strokeStyle = 'rgba(14, 10, 5, 0.18)';
     ctx.lineWidth = 1;
+    ctx.setLineDash([5, 4]);
     ctx.beginPath();
     ctx.moveTo(0, sy);
     ctx.lineTo(cssW, sy);
     ctx.stroke();
+    ctx.setLineDash([]);
 
     const dept = DEPARTMENTS.find(d => d.floor === f);
     const labelTxt = dept
-      ? `FL.${f} · ${dept.label}`
+      ? `FL.${f}  ${dept.label}`
       : `FL.${f}`;
-    ctx.fillStyle = 'rgba(215, 181, 106, 0.42)';
+    ctx.fillStyle = 'rgba(14, 10, 5, 0.55)';
     ctx.fillText(labelTxt, cssW - 12, sy - 10);
   }
   ctx.restore();
 }
 
-// ─── Distant skyline at the lobby ─────────────────────────────────────
+// ─── Lobby: a stack of overlapping document pages ─────────────────────
+//
+// Replaces the nighttime skyline. The lobby (floor 0) is the ground —
+// a desk surface with a fan of overlapping memos and a coffee ring,
+// drawn deterministically so the layout is the same every run.
 
 export function drawLobbySilhouette(
   ctx: CanvasRenderingContext2D,
@@ -98,38 +132,78 @@ export function drawLobbySilhouette(
   if (lobbyScreenY < -200 || lobbyScreenY > cssH + 400) return;
 
   ctx.save();
-  ctx.fillStyle = 'rgba(8, 4, 10, 0.85)';
-  const horizon = lobbyScreenY + 70;
-  ctx.fillRect(0, horizon, cssW, cssH - horizon);
+  // Darker "desk wood" band beneath the starting platform.
+  const tableTop = lobbyScreenY + 60;
+  const grad = ctx.createLinearGradient(0, tableTop, 0, cssH);
+  grad.addColorStop(0, PAPER_DKR);
+  grad.addColorStop(1, '#5a4634');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, tableTop, cssW, cssH - tableTop);
 
-  // A row of skyscraper silhouettes with a hint of lit windows.
-  const towers: Array<[number, number, number]> = [
-    // [centerX_ratio, w, h]
-    [0.05, 0.10, 100],
-    [0.22, 0.14, 160],
-    [0.42, 0.10, 110],
-    [0.58, 0.18, 200],
-    [0.78, 0.12, 130],
-    [0.92, 0.10, 90],
+  // Stack of memos drifting underneath the camera — each is a small
+  // cream rectangle with a tiny ink line + a rotation.
+  // Anchor positions in CSS px relative to the table top.
+  const memos: Array<[number, number, number, number, string]> = [
+    // [centerXRatio, yOffset, w, rotateDeg, label]
+    [0.18, 22, 130, -6, ''],
+    [0.42, 14, 150, 3, ''],
+    [0.72, 28, 120, -4, ''],
+    [0.30, 70, 110, 7, ''],
+    [0.60, 76, 140, -2, ''],
   ];
-  ctx.fillStyle = 'rgba(16, 10, 18, 0.95)';
-  for (const [cxR, wR, h] of towers) {
-    const w = cssW * wR;
-    const x = cssW * cxR - w / 2;
-    ctx.fillRect(x, horizon - h, w, h);
-  }
-  // a few faint warm-lit windows on the tallest tower
-  ctx.fillStyle = 'rgba(255, 198, 110, 0.18)';
-  const t = towers[3];
-  const tw = cssW * t[1], tx = cssW * t[0] - tw / 2, th = t[2];
-  for (let r = 0; r < 7; r++) {
-    for (let c = 0; c < 4; c++) {
-      if (((r * 4 + c) * 7919) % 5 !== 0) continue;
-      ctx.fillRect(tx + 6 + c * (tw / 4),
-                   horizon - th + 14 + r * (th / 8),
-                   tw * 0.15, th * 0.045);
+  for (const [cxR, dy, w, deg] of memos) {
+    const cx = cssW * cxR;
+    const cy = tableTop + dy;
+    const h = w * 0.68;
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate((deg * Math.PI) / 180);
+    // shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.30)';
+    ctx.fillRect(-w / 2 + 3, -h / 2 + 4, w, h);
+    // paper
+    ctx.fillStyle = PAPER;
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 1.2;
+    ctx.globalAlpha = 0.9;
+    ctx.fillRect(-w / 2, -h / 2, w, h);
+    ctx.globalAlpha = 0.30;
+    ctx.strokeRect(-w / 2, -h / 2, w, h);
+    // text lines
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = INK;
+    ctx.globalAlpha = 0.55;
+    const lineW = w * 0.6;
+    ctx.fillRect(-lineW / 2, -h / 2 + 8, lineW, 1.5);
+    ctx.globalAlpha = 0.30;
+    ctx.fillRect(-lineW / 2, -h / 2 + 16, lineW * 0.85, 1.2);
+    ctx.fillRect(-lineW / 2, -h / 2 + 22, lineW * 0.92, 1.2);
+    ctx.fillRect(-lineW / 2, -h / 2 + 28, lineW * 0.70, 1.2);
+    // a tiny red stamp on one of them
+    if (cxR > 0.4 && cxR < 0.6) {
+      ctx.fillStyle = STAMP_RED;
+      ctx.globalAlpha = 0.6;
+      ctx.strokeStyle = STAMP_RED;
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(w / 2 - 28, -h / 2 + 6, 22, 9);
     }
+    ctx.restore();
   }
+
+  // Coffee ring stain front-and-center
+  ctx.strokeStyle = 'rgba(110, 60, 30, 0.45)';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.arc(cssW * 0.50, tableTop + 130, 32, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(70, 40, 20, 0.35)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(cssW * 0.50, tableTop + 130, 28, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // void scale to suppress "unused" warning for the scale arg
+  void scale;
   ctx.restore();
 }
 
@@ -162,23 +236,21 @@ export function drawPlatform(
   switch (p.kind) {
     case 'desk':
       img = sprites.desk;
-      // SVG viewBox 240×80; collision is the desktop slab from y=40 to y=62.
-      // We anchor so y=40 of the sprite lines up with p.y. The top of the
-      // sprite (monitor/lamp) hangs above by 40/80 = 0.5 of drawn h.
-      nativeAspect = 80 / 240;
-      topAboveBy = 0.50;
+      // viewBox 280×100; desktop slab top at sprite y≈48.
+      nativeAspect = 100 / 280;
+      topAboveBy = 48 / 100;
       break;
     case 'spring':
       img = sprites.printer;
-      // viewBox 200×90; collision = top of teal slot at y≈32.
-      nativeAspect = 90 / 200;
-      topAboveBy = 32 / 90;
+      // viewBox 240×110; collision = top of red slot at sprite y≈38.
+      nativeAspect = 110 / 240;
+      topAboveBy = 38 / 110;
       break;
     case 'moving':
       img = sprites.chair;
-      // viewBox 220×100; collision = top of seat at y≈26.
-      nativeAspect = 100 / 220;
-      topAboveBy = 26 / 100;
+      // viewBox 240×120; collision = top of seat at sprite y≈40.
+      nativeAspect = 120 / 240;
+      topAboveBy = 40 / 120;
       break;
   }
 
@@ -209,6 +281,9 @@ export function drawPickup(
   scale: number,
   now: number,
 ) {
+  // Photocopy-style coffee cup: high-contrast ink outline on cream
+  // body, no warm browns. The cup itself is the same paper as the
+  // world, with a black silhouette + a red sleeve band.
   const bob = Math.sin(now / 240 + p.id) * 1.4;
   const sx = p.x * scale;
   const sy = screenY + bob;
@@ -217,24 +292,27 @@ export function drawPickup(
   ctx.save();
   ctx.translate(sx, sy);
 
-  // sleeve
-  ctx.fillStyle = '#a6643c';
-  roundRect(ctx, -9 * s, -3 * s, 18 * s, 7 * s, 1.4 * s);
-  ctx.fill();
-  // cup
-  ctx.fillStyle = '#f4ecd8';
+  // ink outlined cup body
+  ctx.fillStyle = PAPER;
+  ctx.strokeStyle = INK;
+  ctx.lineWidth = 2 * s;
   roundRect(ctx, -8 * s, -11 * s, 16 * s, 18 * s, 2 * s);
   ctx.fill();
-  // lid
-  ctx.fillStyle = '#3a1f10';
+  ctx.stroke();
+  // red rubber-stamp sleeve band
+  ctx.fillStyle = STAMP_RED;
+  roundRect(ctx, -8 * s, -3 * s, 16 * s, 5 * s, 1 * s);
+  ctx.fill();
+  // lid (dark)
+  ctx.fillStyle = INK;
   roundRect(ctx, -10 * s, -14 * s, 20 * s, 5 * s, 2 * s);
   ctx.fill();
-  // sipper bump
-  ctx.fillStyle = '#291108';
+  // sipper
+  ctx.fillStyle = INK;
   roundRect(ctx, -3 * s, -16 * s, 6 * s, 3 * s, 1 * s);
   ctx.fill();
-  // steam
-  ctx.strokeStyle = 'rgba(244, 236, 216, 0.55)';
+  // steam — gray photocopy lines
+  ctx.strokeStyle = 'rgba(14, 10, 5, 0.45)';
   ctx.lineWidth = 1.5 * s;
   ctx.beginPath();
   ctx.moveTo(-3 * s, -20 * s);
@@ -320,14 +398,18 @@ export function drawPlayer(
     sy = 1 + stretch;
   }
 
-  // Sprite native aspect 256×320 (4:5). We size by PLAYER_H so the
-  // body height matches the collision box; the briefcase naturally
-  // extends past PLAYER_W which only matters for collision.
-  const drawH = PLAYER_H * scale;
+  // Photocopy sprite has a torn-paper backing around the figure, so
+  // the drawn box is bigger than PLAYER_H. We scale by sprite-content
+  // height (the figure proper goes from y≈54 to y≈290 = 236 native
+  // px), then position so the figure's feet (sprite y≈290) sit at the
+  // collision line.
+  const figureHeight = 290 - 54;            // native sprite px of the body
+  const fullHeight   = 320;                  // sprite viewBox height
+  const ratio        = fullHeight / figureHeight;   // backing extra above
+  const drawH = PLAYER_H * scale * ratio * 0.92;    // 0.92 = trim a bit
   const drawW = (256 / 320) * drawH;
   const cx = p.x * scale;
   const feetY = screenY;
-  // Sprite has feet near y=290 of 320. Anchor by aligning that to feetY.
   const feetAnchor = 290 / 320;
   const drawX = -drawW / 2;
   const drawY = -drawH * feetAnchor;
@@ -385,7 +467,8 @@ export function drawDust(
   const spread = 12 * t;
   ctx.save();
   ctx.translate(d.x * scale, screenY);
-  ctx.fillStyle = `rgba(220, 200, 175, ${alpha * 0.55})`;
+  // Photocopy-toner puff: dark gray motes on light paper.
+  ctx.fillStyle = `rgba(14, 10, 5, ${alpha * 0.55})`;
   for (const m of d.motes) {
     const x = (m.dx + d.side * spread) * scale;
     const y = -t * 4 * scale + m.dy * scale;
@@ -396,7 +479,7 @@ export function drawDust(
   ctx.restore();
 }
 
-// ─── HUD ──────────────────────────────────────────────────────────────
+// ─── HUD — typewriter page counter ────────────────────────────────────
 
 export function drawHUD(
   ctx: CanvasRenderingContext2D,
@@ -404,14 +487,45 @@ export function drawHUD(
   floor: number,
 ) {
   ctx.save();
-  ctx.fillStyle = 'rgba(244, 236, 216, 0.92)';
-  ctx.font = 'bold 44px "Playfair Display", serif';
+  // Centered torn-paper-tag style counter at top.
+  const padX = 18;
+  const txt = String(floor).padStart(3, '0');
+  ctx.font = 'bold 30px Courier, monospace';
   ctx.textAlign = 'center';
-  ctx.textBaseline = 'top';
-  ctx.shadowColor = 'rgba(0,0,0,0.55)';
-  ctx.shadowBlur = 8;
-  ctx.shadowOffsetY = 2;
-  ctx.fillText(String(floor), cssW / 2, 22);
+  ctx.textBaseline = 'middle';
+  const w = ctx.measureText(txt).width + padX * 2 + 60;
+  const h = 38;
+  const x = cssW / 2 - w / 2;
+  const y = 14;
+
+  // shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+  ctx.fillRect(x + 3, y + 4, w, h);
+
+  // paper tag
+  ctx.fillStyle = PAPER;
+  ctx.fillRect(x, y, w, h);
+  ctx.strokeStyle = INK;
+  ctx.globalAlpha = 0.6;
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(x, y, w, h);
+  ctx.globalAlpha = 1;
+
+  // "FL." label in red stamp
+  ctx.fillStyle = STAMP_RED;
+  ctx.font = 'bold 12px Courier, monospace';
+  ctx.fillText('FL.', x + padX + 14, y + h / 2);
+
+  // number in ink
+  ctx.fillStyle = INK;
+  ctx.font = 'bold 30px Courier, monospace';
+  ctx.fillText(txt, x + w - padX - 30, y + h / 2);
+
+  // a couple of paper torn-edge nicks
+  ctx.fillStyle = PAPER;
+  ctx.fillRect(x - 2, y + 8, 4, 6);
+  ctx.fillRect(x + w - 2, y + h - 14, 4, 6);
+
   ctx.restore();
 }
 
@@ -421,12 +535,15 @@ export function drawRedTint(
   redness: number,
 ) {
   if (redness <= 0.02) return;
+  // Subtle red stamp glow at the screen corners — the page is "burning
+  // with stress" at higher floors. Much lighter than the night-sky
+  // version since we're on cream paper now.
   const grad = ctx.createRadialGradient(
-    cssW / 2, cssH / 2, Math.min(cssW, cssH) * 0.18,
-    cssW / 2, cssH / 2, Math.max(cssW, cssH) * 0.78,
+    cssW / 2, cssH / 2, Math.min(cssW, cssH) * 0.20,
+    cssW / 2, cssH / 2, Math.max(cssW, cssH) * 0.80,
   );
-  grad.addColorStop(0, 'rgba(120, 12, 0, 0)');
-  grad.addColorStop(1, `rgba(150, 8, 6, ${0.55 * redness})`);
+  grad.addColorStop(0, 'rgba(178, 43, 31, 0)');
+  grad.addColorStop(1, `rgba(178, 43, 31, ${0.30 * redness})`);
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, cssW, cssH);
 }

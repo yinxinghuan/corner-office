@@ -1,23 +1,26 @@
-// ─── Tokens (parody-series typographic family) ─────────────────────────
+// ─── Tokens — v0.5 photocopy palette ──────────────────────────────────
 @font-display: 'Playfair Display', 'Times New Roman', serif;
 @font-rye:     'Rye', 'Playfair Display', serif;
 @font-ui:      'Inter', system-ui, -apple-system, sans-serif;
+@font-mono:    'Courier', 'Courier New', monospace;
 
-@ink:      #f4ecd8;       // off-white ticket paper
-@ink-dim:  #c8b290;
-@brand:    #d7b56a;       // brass
-@red:      #c1322a;
-@blue:     #2e6cb8;
-@dark:     #0a0d18;
+@paper:    #ebe4d0;
+@paper-dk: #d4cdb8;
+@ink:      #0e0a05;
+@ink-50:   #5c554a;
+@ink-30:   #8b8474;
+@stamp:    #b22b1f;
+@brand:    @stamp;
+@red:      @stamp;
 
-@radius-card: 14px;
+@radius-card: 6px;
 
 // ─── Root layout ───────────────────────────────────────────────────────
 
 .co-root {
   position: absolute;
   inset: 0;
-  background: @dark;
+  background: @paper;
   color: @ink;
   overflow: hidden;
   font-family: @font-ui;
@@ -25,7 +28,7 @@
   flex-direction: column;
 
   &--poster {
-    background: linear-gradient(180deg, #280611 0%, #0a0d18 100%);
+    background: @paper;
   }
 }
 
@@ -46,22 +49,24 @@
   display: block;
 }
 
-// ─── Tagline ribbon ────────────────────────────────────────────────────
+// ─── Tagline ribbon — typewriter strike on the lobby page ─────────────
 .co-tagline {
   position: absolute;
   left: 50%;
   bottom: 14px;
   transform: translateX(-50%) rotate(-1.4deg);
-  font-family: @font-display;
-  font-style: italic;
-  font-size: 12px;
-  letter-spacing: 0.04em;
-  color: rgba(244, 236, 216, 0.55);
+  font-family: @font-mono;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.10em;
+  color: rgba(14, 10, 5, 0.55);
   pointer-events: none;
   white-space: nowrap;
 }
 
-// ─── Watermark ─────────────────────────────────────────────────────────
+// ─── Watermark — ink color so it reads on paper. The SVG source has
+// been swapped (fill: white -> #0e0a05) per the AlterU brand rule
+// (path unchanged, content swapped, never filter:invert).
 .co-watermark {
   position: absolute;
   right: 10px;
@@ -84,11 +89,13 @@
   left: 50%;
   top: 22%;
   transform: translateX(-50%);
-  font-family: @font-rye;
-  font-size: 36px;
-  letter-spacing: 0.06em;
-  color: @brand;
-  text-shadow: 0 2px 0 rgba(0,0,0,0.45);
+  font-family: @font-mono;
+  font-weight: 800;
+  font-size: 28px;
+  letter-spacing: 0.12em;
+  color: @stamp;
+  // double-stroke "rubber stamp" look — slightly mis-registered offset
+  text-shadow: 1px 1px 0 rgba(178, 43, 31, 0.35);
   pointer-events: none;
   animation: co-floor-ping 1.6s ease-out forwards;
 }
@@ -128,6 +135,8 @@
   &__trail {
     stroke-dasharray: 200;
     animation: co-tut-trail 2.6s ease-in-out infinite;
+    // ink trail, not white
+    stroke: @ink !important;
   }
   &__finger {
     position: absolute;
@@ -141,8 +150,8 @@
   &__finger-icon {
     width: 100%;
     height: 100%;
-    fill: #fff;
-    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.6));
+    fill: @ink;
+    filter: drop-shadow(0 1px 0 rgba(178, 43, 31, 0.45));
   }
   &__label {
     position: absolute;
@@ -157,18 +166,18 @@
     animation: co-tut-fade 2.6s ease-in-out infinite;
   }
   &__label-line {
-    font-family: @font-rye;
-    font-size: 20px;
+    font-family: @font-mono;
+    font-weight: 700;
+    font-size: 16px;
     color: @ink;
-    letter-spacing: 0.10em;
-    text-shadow: 0 2px 0 rgba(0,0,0,0.45);
+    letter-spacing: 0.18em;
 
     &--small {
       font-family: @font-ui;
       font-weight: 700;
       font-size: 11px;
       letter-spacing: 0.18em;
-      color: @ink-dim;
+      color: @ink-50;
     }
   }
 }
@@ -205,7 +214,7 @@
     position: absolute;
     width: 10px;
     height: 10px;
-    background: @dark;
+    background: @ink;
     border-radius: 50%;
 
     &--tl { top: -5px; left: -5px; }
@@ -404,7 +413,7 @@
     font-family: @font-display;
     font-style: italic;
     font-size: clamp(14px, 3.4vw, 18px);
-    color: @ink-dim;
+    color: @ink-50;
     margin-bottom: 22px;
     z-index: 2;
   }
