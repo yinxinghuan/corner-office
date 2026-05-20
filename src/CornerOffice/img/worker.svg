@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 320" width="256" height="320">
+  <!-- AlterU After Dark · Corner Office worker — v1 sketch -->
+  <defs>
+    <!-- Subtle outline filter for chunky cartoon feel -->
+    <filter id="outline" x="-10%" y="-10%" width="120%" height="120%">
+      <feMorphology operator="dilate" radius="1.5"/>
+      <feFlood flood-color="#1d0c06"/>
+      <feComposite in2="SourceGraphic" operator="in"/>
+      <feComposite in="SourceGraphic" in2="outline_result" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- ─── Group A: legs + shoes ─── -->
+  <g id="legs">
+    <!-- left leg -->
+    <path d="M 100 218 L 116 218 L 118 286 L 102 286 Z" fill="#1d1d28" stroke="#0a060a" stroke-width="2" stroke-linejoin="round"/>
+    <!-- right leg -->
+    <path d="M 140 218 L 156 218 L 154 286 L 138 286 Z" fill="#1d1d28" stroke="#0a060a" stroke-width="2" stroke-linejoin="round"/>
+    <!-- shoes -->
+    <ellipse cx="108" cy="290" rx="16" ry="6" fill="#070707" stroke="#0a060a" stroke-width="1.5"/>
+    <ellipse cx="148" cy="290" rx="16" ry="6" fill="#070707" stroke="#0a060a" stroke-width="1.5"/>
+  </g>
+
+  <!-- ─── Group B: torso (suit jacket) ─── -->
+  <g id="torso">
+    <!-- jacket body — slight A-line -->
+    <path d="M 86 218 L 170 218 L 178 130 L 78 130 Z" fill="#26262f" stroke="#0a060a" stroke-width="2.5" stroke-linejoin="round"/>
+    <!-- lapels — darker triangles meeting at center chest -->
+    <path d="M 86 218 L 124 158 L 116 130 L 78 130 Z" fill="#16161d" stroke="#0a060a" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M 170 218 L 132 158 L 140 130 L 178 130 Z" fill="#16161d" stroke="#0a060a" stroke-width="1.5" stroke-linejoin="round"/>
+    <!-- shirt V (cream collar) -->
+    <path d="M 116 130 L 140 130 L 128 162 Z" fill="#f4ecd8" stroke="#0a060a" stroke-width="1.5" stroke-linejoin="round"/>
+    <!-- pocket square: tiny tan rectangle -->
+    <rect x="153" y="170" width="10" height="6" fill="#d7b56a" stroke="#0a060a" stroke-width="1"/>
+  </g>
+
+  <!-- ─── Group C: tie ─── -->
+  <g id="tie">
+    <!-- knot -->
+    <path d="M 121 132 L 135 132 L 132 144 L 124 144 Z" fill="#7f1e18" stroke="#0a060a" stroke-width="1.5" stroke-linejoin="round"/>
+    <!-- tie body -->
+    <path d="M 122 144 L 134 144 L 137 202 L 128 215 L 119 202 Z" fill="#c1322a" stroke="#0a060a" stroke-width="1.5" stroke-linejoin="round"/>
+    <!-- tie highlight -->
+    <path d="M 126 150 L 130 150 L 130 198 L 128 200 L 126 198 Z" fill="#dd5246" opacity="0.6"/>
+  </g>
+
+  <!-- ─── Group D: arms ─── -->
+  <g id="arm-left">
+    <!-- upper arm hangs slightly bent -->
+    <path d="M 78 130 L 70 130 L 58 218 L 70 218 Z" fill="#26262f" stroke="#0a060a" stroke-width="2" stroke-linejoin="round"/>
+    <!-- left hand (hangs) -->
+    <circle cx="64" cy="222" r="9" fill="#e3b89a" stroke="#7a4424" stroke-width="1.5"/>
+  </g>
+
+  <g id="arm-right">
+    <!-- right upper arm angled in to hold the briefcase -->
+    <path d="M 178 130 L 186 130 L 196 200 L 184 200 Z" fill="#26262f" stroke="#0a060a" stroke-width="2" stroke-linejoin="round"/>
+    <!-- right hand wrapping handle -->
+    <circle cx="190" cy="204" r="9" fill="#e3b89a" stroke="#7a4424" stroke-width="1.5"/>
+  </g>
+
+  <!-- ─── Group E: briefcase (separate so it can swing) ─── -->
+  <g id="briefcase">
+    <!-- handle -->
+    <path d="M 178 198 Q 190 188 202 198" fill="none" stroke="#2a1408" stroke-width="3" stroke-linecap="round"/>
+    <!-- body -->
+    <rect x="172" y="204" width="60" height="42" rx="3" fill="#6b3d20" stroke="#2a1408" stroke-width="2"/>
+    <!-- lid seam -->
+    <line x1="172" y1="216" x2="232" y2="216" stroke="#2a1408" stroke-width="1.5"/>
+    <!-- clasp -->
+    <rect x="196" y="212" width="12" height="8" fill="#d7b56a" stroke="#2a1408" stroke-width="1"/>
+    <!-- highlight -->
+    <rect x="176" y="208" width="50" height="3" fill="#8a5230" opacity="0.6"/>
+  </g>
+
+  <!-- ─── Group F: head ─── -->
+  <g id="head">
+    <!-- neck shadow under head -->
+    <rect x="118" y="120" width="20" height="12" fill="#c69676"/>
+    <!-- face -->
+    <circle cx="128" cy="100" r="26" fill="#e3b89a" stroke="#7a4424" stroke-width="2"/>
+    <!-- ear hint -->
+    <ellipse cx="103" cy="100" rx="4" ry="6" fill="#c69676" stroke="#7a4424" stroke-width="1"/>
+    <ellipse cx="153" cy="100" rx="4" ry="6" fill="#c69676" stroke="#7a4424" stroke-width="1"/>
+  </g>
+
+  <!-- ─── Group G: hair (lifted so it doesn't bury the eyes) ─── -->
+  <g id="hair">
+    <!-- helmet — a smaller cap that sits on top of the skull, leaving a forehead -->
+    <path d="M 105 92 A 24 24 0 0 1 151 92 L 150 99 Q 128 95 106 99 Z" fill="#1a0e06" stroke="#0a060a" stroke-width="2" stroke-linejoin="round"/>
+    <!-- side part — heavier left, swoops to the right -->
+    <path d="M 106 86 Q 116 96 138 96 L 138 99 Q 122 100 110 102 L 106 102 Z" fill="#0c0703" stroke="#0a060a" stroke-width="1.5" stroke-linejoin="round"/>
+    <!-- sideburns -->
+    <path d="M 103 96 L 103 108 L 107 110 L 107 100 Z" fill="#1a0e06"/>
+    <path d="M 153 96 L 153 108 L 149 110 L 149 100 Z" fill="#1a0e06"/>
+    <!-- tuft on top — separate path id so the game can rotate it independently -->
+    <path id="tuft" d="M 124 76 Q 117 60 104 56 Q 113 70 122 82 Z" fill="#1a0e06" stroke="#0a060a" stroke-width="1.5" stroke-linejoin="round"/>
+  </g>
+
+  <!-- ─── Group H: face details ─── -->
+  <g id="face-detail">
+    <!-- eyebrows (slight worry) -->
+    <path d="M 113 102 Q 119 100 124 102" fill="none" stroke="#0a060a" stroke-width="2" stroke-linecap="round"/>
+    <path d="M 132 102 Q 137 100 143 102" fill="none" stroke="#0a060a" stroke-width="2" stroke-linecap="round"/>
+    <!-- tired half-open eyes — small black ovals with a tiny highlight -->
+    <ellipse cx="119" cy="108" rx="2.6" ry="2" fill="#0a060a"/>
+    <ellipse cx="137" cy="108" rx="2.6" ry="2" fill="#0a060a"/>
+    <circle cx="120" cy="107.2" r="0.8" fill="#f4ecd8"/>
+    <circle cx="138" cy="107.2" r="0.8" fill="#f4ecd8"/>
+    <!-- dark circles under the eyes (subtle) -->
+    <path d="M 116 112 Q 119 114 122 112" fill="none" stroke="#a07050" stroke-width="1" opacity="0.7"/>
+    <path d="M 134 112 Q 137 114 140 112" fill="none" stroke="#a07050" stroke-width="1" opacity="0.7"/>
+    <!-- tiny resigned mouth — corners slightly down, near-flat -->
+    <path d="M 122 120 Q 128 117 134 120" fill="none" stroke="#5a2a18" stroke-width="1.8" stroke-linecap="round"/>
+    <!-- single bead of sweat on the brow -->
+    <ellipse cx="146" cy="98" rx="2" ry="3" fill="#9bd0ec" stroke="#3a6088" stroke-width="0.8"/>
+  </g>
+</svg>

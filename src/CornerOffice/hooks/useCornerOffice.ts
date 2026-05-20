@@ -4,12 +4,14 @@ import {
   GRAVITY, JUMP_V_BASE, JUMP_V_SPRING,
   MAX_FALL_SPEED, FLOOR_HEIGHT_PX,
   TOP_FLOOR, BURNOUT_PENALTY_FLOORS,
+  HORIZONTAL_DECAY_PER_MS, CAMERA_DECAY_PER_MS,
   type GameState, type RunStats, type Player, type Platform,
 } from '../types';
 import {
   drawBackground, drawFloorMarkers, drawLobbySilhouette,
   drawPlatform, drawPickup, drawHazard,
-  drawPlayer, drawHUD, drawRedTint, drawFloatToast,
+  drawPlayer, drawHUD, drawRedTint, drawFloatToast, drawDust,
+  type DustParticle,
 } from '../utils/draw';
 import {
   seedDemoOnly, populateAbove, pruneBelow, type WorldChunk,
@@ -18,6 +20,7 @@ import {
   unlockAudio, sfxBounce, sfxSpring, sfxLatte,
   sfxBurnout, sfxGameOver, sfxCleared, startAmbient, stopAmbient,
 } from '../utils/audio';
+import { getSprites } from '../utils/sprites';
 
 const BEST_KEY = 'corner_office_best_v1';
 const GRACE_MS = 1200;
@@ -42,24 +45,27 @@ export function useCornerOffice() {
   const [stats, setStats] = useState<RunStats | null>(null);
   const [hasInteracted, setHasInteracted] = useState(false);
 
-  // ─── Mutable refs ────────────────────────────────────────────────────
   const rafRef = useRef<number | null>(null);
   const lastTickRef = useRef<number>(performance.now());
   const startedAtRef = useRef<number>(performance.now());
   const worldRef = useRef<WorldChunk | null>(null);
   const playerRef = useRef<Player | null>(null);
   const cameraYRef = useRef<number>(0);
+  const cameraTargetYRef = useRef<number>(0);
   const startWorldYRef = useRef<number>(0);
   const maxFloorRef = useRef<number>(0);
   const stateRef = useRef<GameState>('playing');
   const sizeRef = useRef<{ w: number; h: number; scale: number }>({ w: 360, h: 640, scale: 1 });
   const dragRef = useRef<{ active: boolean }>({ active: false });
   const toastsRef = useRef<Toast[]>([]);
+  const dustRef = useRef<DustParticle[]>([]);
   const nextToastId = useRef(1);
   const interactedRef = useRef(false);
   const runStatsRef = useRef({ pickupsLatte: 0, burnouts: 0 });
 
-  // ─── Canvas fit ──────────────────────────────────────────────────────
+  const spritesRef = useRef(getSprites());
+
+  // ─── Canvas fit ─────────────────────────────────────────────────────
   const fitCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     const stage = stageRef.current;
@@ -79,16 +85,18 @@ export function useCornerOffice() {
     sizeRef.current = { w: cssW, h: cssH, scale: cssW / GAME_W };
   }, []);
 
-  // ─── World setup ─────────────────────────────────────────────────────
+  // ─── World setup ────────────────────────────────────────────────────
   const initWorld = useCallback(() => {
     const { h: cssH, scale } = sizeRef.current;
     const logicalH = cssH / scale;
     const startWorldY = logicalH * 0.55;
     startWorldYRef.current = startWorldY;
     cameraYRef.current = 0;
+    cameraTargetYRef.current = 0;
     maxFloorRef.current = 0;
     runStatsRef.current = { pickupsLatte: 0, burnouts: 0 };
     toastsRef.current = [];
+    dustRef.current = [];
 
     playerRef.current = {
       x: GAME_W / 2,
@@ -107,13 +115,7 @@ export function useCornerOffice() {
     lastTickRef.current = performance.now();
   }, []);
 
-  // ─── Input — direct-tracking ─────────────────────────────────────────
-  //
-  // While the pointer is down, the player's target x becomes the touch
-  // x in logical coords. Tracking happens in the tick (fast lerp).
-  // When the pointer lifts, the target stays put so the player coasts
-  // to a stop instead of snapping back.
-
+  // ─── Input ───────────────────────────────────────────────────────────
   const localXFromEvent = (e: PointerEvent | React.PointerEvent): number => {
     const canvas = canvasRef.current;
     if (!canvas) return GAME_W / 2;
@@ -149,12 +151,11 @@ export function useCornerOffice() {
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
     dragRef.current.active = false;
-    // freeze target at current player position so they don't drift
     if (playerRef.current) playerRef.current.targetX = playerRef.current.x;
     (e.target as Element).releasePointerCapture?.(e.pointerId);
   }, []);
 
-  // ─── Game loop ───────────────────────────────────────────────────────
+  // ─── Game loop ──────────────────────────────────────────────────────
   const tick = useCallback((now: number) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -179,16 +180,20 @@ export function useCornerOffice() {
     const isPlaying = stateRef.current === 'playing';
 
     if (isPlaying) {
-      // ── Horizontal: snappy direct tracking ──
-      // Per-frame lerp factor: when dragging, 30% per frame (≈300 ms to
-      // converge). When not dragging, 0 so the player holds station.
-      const lerp = dragRef.current.active ? 0.30 : 0;
-      const dx = player.targetX - player.x;
-      const altDx = dx > 0 ? dx - GAME_W : dx + GAME_W;
-      const useDx = Math.abs(altDx) < Math.abs(dx) ? altDx : dx;
-      const step = useDx * lerp;
-      player.vx = step / Math.max(dt, 1);  // expose for tilt/animation
-      player.x += step;
+      // ── Horizontal: dt-normalized exponential smoothing ──
+      // factor = 1 - exp(-rate · dt) so the feel is identical at 30/60/120fps.
+      if (dragRef.current.active) {
+        const factor = 1 - Math.exp(-HORIZONTAL_DECAY_PER_MS * dt);
+        const dx = player.targetX - player.x;
+        const altDx = dx > 0 ? dx - GAME_W : dx + GAME_W;
+        const useDx = Math.abs(altDx) < Math.abs(dx) ? altDx : dx;
+        const step = useDx * factor;
+        player.vx = step / dt;
+        player.x += step;
+      } else {
+        // glide to a stop — bleed off any residual velocity
+        player.vx *= 0.85;
+      }
       if (player.x < -PLAYER_W / 2) player.x += GAME_W + PLAYER_W;
       if (player.x > GAME_W + PLAYER_W / 2) player.x -= GAME_W + PLAYER_W;
 
@@ -199,7 +204,7 @@ export function useCornerOffice() {
       if (player.vy > 0) {
         for (const p of world.platforms) {
           if (prevY <= p.y && player.y >= p.y) {
-            if (Math.abs(player.x - p.x) <= p.w / 2 + PLAYER_W * 0.28) {
+            if (Math.abs(player.x - p.x) <= p.w / 2 + PLAYER_W * 0.22) {
               landOn(p, player, now);
               break;
             }
@@ -221,7 +226,7 @@ export function useCornerOffice() {
         if (now > player.hitUntil) {
           const dxh = h.x - player.x;
           const dyh = h.y - (player.y - PLAYER_H / 2);
-          if (dxh * dxh + dyh * dyh < (20 + 16) * (20 + 16) * 0.36) {
+          if (dxh * dxh + dyh * dyh < (20 + 18) * (20 + 18) * 0.36) {
             handleBurnout(player, now);
           }
         }
@@ -232,7 +237,7 @@ export function useCornerOffice() {
         if (pk.taken) continue;
         const dxp = pk.x - player.x;
         const dyp = pk.y - (player.y - PLAYER_H / 2);
-        if (dxp * dxp + dyp * dyp < 22 * 22) {
+        if (dxp * dxp + dyp * dyp < 26 * 26) {
           pk.taken = true;
           runStatsRef.current.pickupsLatte += 1;
           sfxLatte();
@@ -241,11 +246,11 @@ export function useCornerOffice() {
       }
 
       if (interactedRef.current) {
-        // Camera follow
-        const targetCameraY = player.y - logicalH * 0.55;
-        if (targetCameraY < cameraYRef.current) cameraYRef.current = targetCameraY;
+        // Camera lerp — separate from instant-snap so the climb breathes.
+        cameraTargetYRef.current = Math.min(cameraTargetYRef.current, player.y - logicalH * 0.55);
+        const camFactor = 1 - Math.exp(-CAMERA_DECAY_PER_MS * dt);
+        cameraYRef.current += (cameraTargetYRef.current - cameraYRef.current) * camFactor;
 
-        // Floor score
         const newFloor = Math.min(TOP_FLOOR,
           Math.floor((startWorldYRef.current - cameraYRef.current - logicalH * 0.55) / FLOOR_HEIGHT_PX));
         if (newFloor > maxFloorRef.current) {
@@ -253,12 +258,10 @@ export function useCornerOffice() {
           setFloorDisplay(newFloor);
         }
 
-        // Win check (player is standing on the top floor)
         if (maxFloorRef.current >= TOP_FLOOR && player.vy >= -0.05) {
           finishRun(true);
         }
 
-        // Death check (after grace)
         const grace = now - startedAtRef.current < GRACE_MS;
         if (!grace && player.y > cameraYRef.current + logicalH + 80) {
           finishRun(false);
@@ -276,12 +279,13 @@ export function useCornerOffice() {
     drawLobbySilhouette(ctx, cssW, cssH, startWorldYRef.current, cameraYRef.current, scale);
     drawFloorMarkers(ctx, cssW, cssH, startWorldYRef.current, cameraYRef.current, scale);
 
+    const sprites = spritesRef.current;
     const worldToScreenY = (wy: number) => (wy - cameraYRef.current) * scale;
 
     for (const p of world.platforms) {
       const sy = worldToScreenY(p.y);
-      if (sy < -40 || sy > cssH + 40) continue;
-      drawPlatform(ctx, p, sy, scale, now);
+      if (sy < -120 || sy > cssH + 120) continue;
+      drawPlatform(ctx, p, sy, scale, now, sprites);
     }
     for (const pk of world.pickups) {
       if (pk.taken) continue;
@@ -295,7 +299,13 @@ export function useCornerOffice() {
       drawHazard(ctx, h, sy, scale, now);
     }
 
-    drawPlayer(ctx, player, worldToScreenY(player.y), scale, now);
+    drawPlayer(ctx, player, worldToScreenY(player.y), scale, now, sprites);
+
+    // Dust particles (over the player so they read as feet-puff)
+    dustRef.current = dustRef.current.filter(d => now - d.born < d.life);
+    for (const d of dustRef.current) {
+      drawDust(ctx, d, worldToScreenY(d.yWorld), scale, now);
+    }
 
     toastsRef.current = toastsRef.current.filter(t => now - t.born < t.life);
     for (const ts of toastsRef.current) {
@@ -309,12 +319,32 @@ export function useCornerOffice() {
     rafRef.current = requestAnimationFrame(tick);
   }, []);
 
-  // ─── Game events ────────────────────────────────────────────────────
+  // ─── Events ─────────────────────────────────────────────────────────
   const landOn = (p: Platform, player: Player, now: number) => {
     player.y = p.y;
     if (p.kind === 'spring') { player.vy = JUMP_V_SPRING; sfxSpring(); }
     else { player.vy = JUMP_V_BASE; sfxBounce(); }
     p.squishUntil = now + 200;
+    // Puff dust on every non-spring landing — spring is too "machine-y"
+    // for organic dust.
+    if (p.kind !== 'spring') spawnDust(p.x, p.y, now);
+  };
+
+  const spawnDust = (x: number, yWorld: number, now: number) => {
+    const make = (side: -1 | 1): DustParticle => ({
+      x: x + side * 14,
+      yWorld,
+      born: now,
+      life: 380,
+      side,
+      motes: Array.from({ length: 4 }, () => ({
+        dx: (Math.random() - 0.5) * 6,
+        dy: -Math.random() * 4,
+        r: 1.4 + Math.random() * 1.6,
+      })),
+    });
+    dustRef.current.push(make(-1));
+    dustRef.current.push(make(1));
   };
 
   const handleBurnout = (player: Player, now: number) => {
@@ -355,7 +385,7 @@ export function useCornerOffice() {
     if (cleared) sfxCleared(); else sfxGameOver();
   };
 
-  // ─── Lifecycle ───────────────────────────────────────────────────────
+  // ─── Lifecycle ──────────────────────────────────────────────────────
   useEffect(() => {
     fitCanvas();
     initWorld();
@@ -377,8 +407,6 @@ export function useCornerOffice() {
     if (interactedRef.current) {
       unlockAudio();
       startAmbient();
-      // Skip the demo gate on retry — the user already knows the game.
-      // But re-arm the climb by seeding above immediately.
       if (worldRef.current) {
         populateAbove(worldRef.current, startWorldYRef.current - 200, startWorldYRef.current);
       }

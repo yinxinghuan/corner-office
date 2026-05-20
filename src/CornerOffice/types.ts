@@ -4,15 +4,23 @@
 // fewer moving parts, the less the player has to decode at a glance.
 
 export const GAME_W = 360;
-export const PLAYER_W = 46;
-export const PLAYER_H = 64;
+export const PLAYER_W = 64;
+export const PLAYER_H = 90;
 
-// Snappier physics than v0.1.
-export const GRAVITY = 0.0020;                  // px / ms^2 (was .0014)
-export const JUMP_V_BASE = -0.88;               // px / ms (was -.78)
-export const JUMP_V_SPRING = -1.45;             // spring desk
-export const MAX_FALL_SPEED = 1.8;
+// v0.3 physics: same gravity, slightly stronger jump so the bigger
+// player still feels light. Horizontal lerp is dt-normalized in the
+// hook, no longer a per-frame ratio.
+export const GRAVITY = 0.0020;                  // px / ms^2
+export const JUMP_V_BASE = -0.95;               // px / ms
+export const JUMP_V_SPRING = -1.55;             // printer kick
+export const MAX_FALL_SPEED = 1.9;
 export const FLOOR_HEIGHT_PX = 70;
+
+/** Horizontal tracking decay — `1 - exp(-rate * dt)`. Higher = snappier.
+ *  Frame-rate independent. 0.025/ms ≈ 90% convergence in 100ms. */
+export const HORIZONTAL_DECAY_PER_MS = 0.025;
+/** Camera lerp — softer than player, so the climb breathes a touch. */
+export const CAMERA_DECAY_PER_MS = 0.012;
 
 export const TOP_FLOOR = 100;                   // EXECUTIVE LIFETIME goal
 export const BURNOUT_PENALTY_FLOORS = 3;

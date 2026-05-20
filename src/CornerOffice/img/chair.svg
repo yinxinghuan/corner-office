@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 100" width="220" height="100">
+  <!-- Office chair (moving platform) — high-back swivel with star base -->
+
+  <!-- ── backrest (peeking up) ── -->
+  <path d="M 80 8 Q 110 -2 140 8 L 140 28 L 80 28 Z" fill="#3d4a5e" stroke="#0a060a" stroke-width="2" stroke-linejoin="round"/>
+  <!-- backrest cushion seams -->
+  <line x1="92" y1="14" x2="92" y2="26" stroke="#5a6b85" stroke-width="1"/>
+  <line x1="110" y1="12" x2="110" y2="27" stroke="#5a6b85" stroke-width="1"/>
+  <line x1="128" y1="14" x2="128" y2="26" stroke="#5a6b85" stroke-width="1"/>
+
+  <!-- ── seat (the bounce surface — full width) ── -->
+  <ellipse cx="110" cy="40" rx="92" ry="14" fill="#4a5a72" stroke="#0a060a" stroke-width="2"/>
+  <ellipse cx="110" cy="36" rx="88" ry="10" fill="#6f88a9"/>
+  <!-- seat seam -->
+  <ellipse cx="110" cy="36" rx="78" ry="8" fill="none" stroke="#3d4a5e" stroke-width="0.8" opacity="0.7"/>
+
+  <!-- ── armrests, peeking out the sides ── -->
+  <rect x="22" y="38" width="14" height="6" rx="2" fill="#16161d" stroke="#0a060a" stroke-width="1.5"/>
+  <rect x="184" y="38" width="14" height="6" rx="2" fill="#16161d" stroke="#0a060a" stroke-width="1.5"/>
+
+  <!-- ── gas lift cylinder ── -->
+  <rect x="104" y="54" width="12" height="22" fill="#1f2530" stroke="#0a060a" stroke-width="1.5"/>
+  <ellipse cx="110" cy="54" rx="7" ry="2.5" fill="#3d4a5e"/>
+
+  <!-- ── star base — 5 legs radiating ── -->
+  <g stroke="#0a060a" stroke-width="1.5" stroke-linejoin="round">
+    <path d="M 110 76 L 60 92 L 76 96 Z" fill="#3d4a5e"/>
+    <path d="M 110 76 L 90 96 L 100 100 L 110 90 Z" fill="#3d4a5e"/>
+    <path d="M 110 76 L 110 96 L 122 96 Z" fill="#1f2530"/>
+    <path d="M 110 76 L 130 96 L 140 100 L 134 88 Z" fill="#3d4a5e"/>
+    <path d="M 110 76 L 160 92 L 144 96 Z" fill="#3d4a5e"/>
+  </g>
+
+  <!-- ── wheels at the tips ── -->
+  <circle cx="58" cy="92" r="4.5" fill="#1a1a22" stroke="#0a060a" stroke-width="1.2"/>
+  <circle cx="88" cy="98" r="4.5" fill="#1a1a22" stroke="#0a060a" stroke-width="1.2"/>
+  <circle cx="110" cy="98" r="4.5" fill="#1a1a22" stroke="#0a060a" stroke-width="1.2"/>
+  <circle cx="132" cy="98" r="4.5" fill="#1a1a22" stroke="#0a060a" stroke-width="1.2"/>
+  <circle cx="162" cy="92" r="4.5" fill="#1a1a22" stroke="#0a060a" stroke-width="1.2"/>
+</svg>

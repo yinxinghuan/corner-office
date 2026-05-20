@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 90" width="200" height="90">
+  <!-- Office printer (spring platform) — paper jets up = "boing" -->
+  <!-- ── paper jet at the top ── -->
+  <!-- shimmying paper sheets shooting up represent the bounce -->
+  <g>
+    <path d="M 70 32 L 78 6 L 92 14 L 84 38 Z" fill="#fff6e8" stroke="#3a1a08" stroke-width="1.2" stroke-linejoin="round"/>
+    <path d="M 100 30 L 108 4 L 124 10 L 118 36 Z" fill="#f4ecd8" stroke="#3a1a08" stroke-width="1.2" stroke-linejoin="round"/>
+    <path d="M 130 32 L 138 14 L 152 8 L 148 36 Z" fill="#fff6e8" stroke="#3a1a08" stroke-width="1.2" stroke-linejoin="round"/>
+    <!-- text lines on paper -->
+    <line x1="78" y1="22" x2="90" y2="26" stroke="#7a4424" stroke-width="0.8"/>
+    <line x1="77" y1="28" x2="88" y2="32" stroke="#7a4424" stroke-width="0.8"/>
+    <line x1="106" y1="18" x2="122" y2="22" stroke="#7a4424" stroke-width="0.8"/>
+    <line x1="105" y1="24" x2="120" y2="28" stroke="#7a4424" stroke-width="0.8"/>
+    <line x1="105" y1="30" x2="120" y2="34" stroke="#7a4424" stroke-width="0.8"/>
+    <line x1="136" y1="22" x2="148" y2="20" stroke="#7a4424" stroke-width="0.8"/>
+    <line x1="136" y1="28" x2="148" y2="26" stroke="#7a4424" stroke-width="0.8"/>
+  </g>
+
+  <!-- ── printer body ── -->
+  <!-- top tray / lid slope -->
+  <path d="M 18 50 L 60 36 L 144 36 L 182 50 Z" fill="#dbd3c2" stroke="#0a060a" stroke-width="2" stroke-linejoin="round"/>
+  <!-- main body -->
+  <rect x="10" y="50" width="180" height="34" rx="3" fill="#e6dcc6" stroke="#0a060a" stroke-width="2"/>
+  <!-- darker base lip -->
+  <rect x="10" y="78" width="180" height="6" fill="#a89976" stroke="#0a060a" stroke-width="1.5"/>
+  <!-- paper-out slot (the bounce mouth) — bright teal so it reads as the action zone -->
+  <rect x="68" y="32" width="64" height="10" fill="#2da3a0" stroke="#0a060a" stroke-width="1.5"/>
+  <rect x="71" y="35" width="58" height="4" fill="#7feadf"/>
+
+  <!-- ── front panel: buttons + tiny screen ── -->
+  <!-- LCD -->
+  <rect x="24" y="58" width="36" height="14" rx="1" fill="#3aa0c8" stroke="#0a060a" stroke-width="1.5"/>
+  <rect x="28" y="62" width="6" height="3" fill="#9ad7eb"/>
+  <rect x="36" y="62" width="14" height="3" fill="#9ad7eb"/>
+  <rect x="28" y="67" width="22" height="2" fill="#9ad7eb"/>
+
+  <!-- buttons -->
+  <circle cx="92" cy="65" r="3.5" fill="#c1322a" stroke="#0a060a" stroke-width="1"/>
+  <circle cx="106" cy="65" r="3.5" fill="#2e6cb8" stroke="#0a060a" stroke-width="1"/>
+  <circle cx="120" cy="65" r="3.5" fill="#d7b56a" stroke="#0a060a" stroke-width="1"/>
+
+  <!-- brand bar -->
+  <rect x="138" y="60" width="44" height="14" rx="1" fill="#16161d" stroke="#0a060a" stroke-width="1"/>
+  <text x="160" y="70" font-family="Inter, sans-serif" font-size="7" font-weight="700" fill="#f4ecd8" text-anchor="middle" letter-spacing="0.5">XEROX</text>
+</svg>
