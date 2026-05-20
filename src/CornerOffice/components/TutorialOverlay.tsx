@@ -27,7 +27,6 @@ export function TutorialOverlay() {
       </div>
       <div className="co-tutorial__label">
         <span className="co-tutorial__label-line">{t('tut_line1')}</span>
-        <span className="co-tutorial__label-line co-tutorial__label-line--small">{t('tut_line2')}</span>
       </div>
     </div>
   );

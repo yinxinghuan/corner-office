@@ -389,15 +389,17 @@ export function drawPlayer(
   ctx.fill();
   // side part block on the heavier side
   ctx.fillRect(-10, -54, 7, 6);
-  // tuft: a small swoop that flicks opposite to motion (wind in the climb)
-  const tuftAng = -tilt * 1.8 - 0.15;
+  // tuft: a swoop that fights gravity and reacts hard to motion. At
+  // rest it stands a touch back; horizontal speed swings it the
+  // opposite way (wind in the climb).
+  const tuftAng = -tilt * 2.4 + Math.sin(now / 280) * 0.04;
   ctx.save();
-  ctx.translate(-2, -62);
+  ctx.translate(-1, -62);
   ctx.rotate(tuftAng);
   ctx.beginPath();
   ctx.moveTo(0, 0);
-  ctx.quadraticCurveTo(-2, -6, -8, -7);
-  ctx.quadraticCurveTo(-3, -2, 0, 0);
+  ctx.quadraticCurveTo(-4, -7, -10, -7);
+  ctx.quadraticCurveTo(-4, -3, 0, 0);
   ctx.closePath();
   ctx.fill();
   ctx.restore();
