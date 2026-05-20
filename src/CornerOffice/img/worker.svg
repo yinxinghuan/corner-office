@@ -1,12 +1,45 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 320" width="256" height="320">
-  <!-- In-game sprite version — character + minimal torn paper backing.
-       Reads at small size: drops the FILE COPY stamp, hole punches and
-       coffee ring (those live on the splash/poster version). -->
+  <!-- Worker v2: paper backing is now CUT TO BODY SHAPE.
+       A single filter dilates the figure into a margin, displaces the
+       edge with turbulence to make it look torn-cut, fills that
+       expansion with cream paper, and composites the figure on top. -->
   <defs>
-    <filter id="torn-edge" x="-5%" y="-5%" width="110%" height="110%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.45" numOctaves="2" seed="11" result="n"/>
-      <feDisplacementMap in="SourceGraphic" in2="n" scale="5"/>
+    <!-- Paper-cutout filter — tighter to body now (radius 4 vs 7) with a
+         visible ink edge (dilate twice: outer = edge color, inner = paper fill).
+         The user's note was that the cutout was reading as a rectangle.
+         The smaller dilation hugs the figure outline; the thin dark edge
+         makes the silhouette visible against the cream world. -->
+    <filter id="paper-cut" x="-15%" y="-10%" width="130%" height="120%">
+      <feMorphology in="SourceGraphic" operator="dilate" radius="5" result="outer"/>
+      <feMorphology in="SourceGraphic" operator="dilate" radius="3" result="inner"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.42" numOctaves="2" seed="11" result="noise"/>
+      <feDisplacementMap in="outer" in2="noise" scale="7" result="outer_torn"/>
+      <feDisplacementMap in="inner" in2="noise" scale="6" result="inner_torn"/>
+      <feFlood flood-color="#3a2f1a" result="edge_color"/>
+      <feFlood flood-color="#f7f0d8" result="fill_color"/>
+      <feComposite in="edge_color" in2="outer_torn" operator="in" result="edge"/>
+      <feComposite in="fill_color" in2="inner_torn" operator="in" result="fill"/>
+      <feMerge>
+        <feMergeNode in="edge"/>
+        <feMergeNode in="fill"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
     </filter>
+
+    <!-- Drop-shadow filter — heavier so the cutout reads on cream bg -->
+    <filter id="dropshadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="blur"/>
+      <feOffset in="blur" dx="4" dy="7" result="offset"/>
+      <feComponentTransfer in="offset" result="shadow">
+        <feFuncA type="linear" slope="0.65"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode in="shadow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Ink noise (toner stipple) -->
     <filter id="ink-noise" x="-2%" y="-2%" width="104%" height="104%">
       <feTurbulence type="fractalNoise" baseFrequency="1.6" numOctaves="2" seed="9" result="n"/>
       <feColorMatrix in="n" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.32 0" result="stipple"/>
@@ -15,100 +48,91 @@
     </filter>
   </defs>
 
-  <!-- Drop shadow under the torn paper -->
-  <path d="M 32 36 L 226 32 L 232 296 L 28 290 Z"
-        fill="rgba(0,0,0,0.35)" transform="translate(4 6)"
-        filter="url(#torn-edge)"/>
+  <!-- =====================================================================
+       Everything from here down is wrapped in:  filter="url(#paper-cut)"
+       so the figure SHAPE drives the paper cut. We add the drop-shadow
+       as a wrapper layer on the outside so the shadow follows the cut.
+       ===================================================================== -->
+  <g filter="url(#dropshadow)">
+    <g filter="url(#paper-cut)">
 
-  <!-- Cream torn-paper backing (slightly bigger than figure) -->
-  <path d="M 32 36 L 226 32 L 232 296 L 28 290 Z"
-        fill="#ebe4d0"
-        stroke="#1a140a" stroke-width="1" stroke-opacity="0.30"
-        filter="url(#torn-edge)"/>
+      <!-- ─── Red registration-shift ghost (offset -3,-3) ─── -->
+      <g opacity="0.50" transform="translate(-3 -3)">
+        <!-- legs -->
+        <rect x="100" y="226" width="14" height="58" fill="#b22b1f"/>
+        <rect x="140" y="226" width="14" height="58" fill="#b22b1f"/>
+        <!-- shoes -->
+        <ellipse cx="106" cy="288" rx="14" ry="5" fill="#b22b1f"/>
+        <ellipse cx="146" cy="288" rx="14" ry="5" fill="#b22b1f"/>
+        <!-- torso -->
+        <path d="M 84 226 L 172 226 L 180 130 L 76 130 Z" fill="#b22b1f"/>
+        <!-- arms -->
+        <rect x="64" y="130" width="14" height="92" fill="#b22b1f"/>
+        <path d="M 183 130 L 197 130 L 209 208 L 195 208 Z" fill="#b22b1f"/>
+        <!-- head -->
+        <circle cx="128" cy="102" r="28" fill="#b22b1f"/>
+        <!-- briefcase -->
+        <rect x="176" y="208" width="62" height="44" fill="#b22b1f"/>
+      </g>
 
-  <!-- Two horizontal photocopy streaks -->
-  <rect x="40" y="148" width="170" height="2.5" fill="#1a140a" opacity="0.10"/>
-  <rect x="60" y="240" width="120" height="1.5" fill="#1a140a" opacity="0.08"/>
+      <!-- ─── Main ink figure ─── -->
+      <g id="ink" filter="url(#ink-noise)">
 
-  <!-- ─── Red registration-shift "misprint" ghost (offset -3,-3) ─── -->
-  <g opacity="0.50" transform="translate(-3 -3)">
-    <!-- legs -->
-    <rect x="100" y="226" width="14" height="58" fill="#b22b1f"/>
-    <rect x="140" y="226" width="14" height="58" fill="#b22b1f"/>
-    <!-- shoes -->
-    <ellipse cx="106" cy="288" rx="14" ry="5" fill="#b22b1f"/>
-    <ellipse cx="146" cy="288" rx="14" ry="5" fill="#b22b1f"/>
-    <!-- torso -->
-    <path d="M 84 226 L 172 226 L 180 130 L 76 130 Z" fill="#b22b1f"/>
-    <!-- head -->
-    <circle cx="128" cy="102" r="28" fill="#b22b1f"/>
-    <!-- briefcase -->
-    <rect x="178" y="208" width="60" height="44" fill="#b22b1f"/>
-  </g>
+        <!-- legs -->
+        <rect x="103" y="226" width="14" height="60" fill="#0e0a05"/>
+        <rect x="143" y="226" width="14" height="60" fill="#0e0a05"/>
+        <!-- shoes -->
+        <ellipse cx="110" cy="290" rx="14" ry="5" fill="#0e0a05"/>
+        <ellipse cx="150" cy="290" rx="14" ry="5" fill="#0e0a05"/>
 
-  <!-- ─── Main ink figure ─── -->
-  <g id="ink" filter="url(#ink-noise)">
+        <!-- torso -->
+        <path d="M 87 226 L 175 226 L 183 130 L 79 130 Z" fill="#0e0a05"/>
+        <!-- shirt V -->
+        <path d="M 118 130 L 142 130 L 130 162 Z" fill="#ebe4d0"/>
+        <!-- lapel shading -->
+        <path d="M 87 226 L 122 162 L 114 130 L 79 130 Z" fill="#3a352c"/>
+        <path d="M 175 226 L 138 162 L 146 130 L 183 130 Z" fill="#3a352c"/>
+        <!-- pocket square (red stamp accent) -->
+        <rect x="160" y="174" width="10" height="6" fill="#b22b1f"/>
 
-    <!-- legs -->
-    <rect x="103" y="226" width="14" height="60" fill="#0e0a05"/>
-    <rect x="143" y="226" width="14" height="60" fill="#0e0a05"/>
-    <!-- shoes -->
-    <ellipse cx="110" cy="290" rx="14" ry="5" fill="#0e0a05"/>
-    <ellipse cx="150" cy="290" rx="14" ry="5" fill="#0e0a05"/>
+        <!-- tie -->
+        <path d="M 122 162 L 138 162 L 140 218 L 130 230 L 120 218 Z" fill="#b22b1f"/>
+        <rect x="121" y="130" width="18" height="8" fill="#7a1a13"/>
 
-    <!-- TORSO -->
-    <path d="M 87 226 L 175 226 L 183 130 L 79 130 Z" fill="#0e0a05"/>
-    <!-- shirt V -->
-    <path d="M 118 130 L 142 130 L 130 162 Z" fill="#ebe4d0"/>
-    <!-- mid-tone lapel shading (sells the photocopy) -->
-    <path d="M 87 226 L 122 162 L 114 130 L 79 130 Z" fill="#3a352c"/>
-    <path d="M 175 226 L 138 162 L 146 130 L 183 130 Z" fill="#3a352c"/>
-    <!-- pocket square: red rubber-stamp accent -->
-    <rect x="160" y="174" width="10" height="6" fill="#b22b1f"/>
+        <!-- arms -->
+        <rect x="64" y="130" width="14" height="92" fill="#0e0a05"/>
+        <circle cx="71" cy="226" r="9" fill="#5c554a"/>
+        <path d="M 183 130 L 197 130 L 209 208 L 195 208 Z" fill="#0e0a05"/>
+        <circle cx="202" cy="212" r="9" fill="#5c554a"/>
 
-    <!-- TIE — kept red, the one warm accent in the photocopy palette -->
-    <path d="M 122 162 L 138 162 L 140 218 L 130 230 L 120 218 Z" fill="#b22b1f"/>
-    <rect x="121" y="130" width="18" height="8" fill="#7a1a13"/>
+        <!-- briefcase -->
+        <path d="M 180 204 Q 202 192 224 204" fill="none" stroke="#0e0a05" stroke-width="3" stroke-linecap="round"/>
+        <rect x="176" y="208" width="62" height="44" fill="#5c554a" stroke="#0e0a05" stroke-width="2.4"/>
+        <line x1="176" y1="220" x2="238" y2="220" stroke="#0e0a05" stroke-width="1.5"/>
+        <rect x="200" y="216" width="12" height="8" fill="#0e0a05"/>
+        <rect x="180" y="212" width="54" height="3" fill="#8b8474"/>
 
-    <!-- LEFT ARM -->
-    <rect x="64" y="130" width="14" height="92" fill="#0e0a05"/>
-    <circle cx="71" cy="226" r="9" fill="#5c554a"/>
+        <!-- head -->
+        <circle cx="130" cy="102" r="28" fill="#8b8474" stroke="#0e0a05" stroke-width="2"/>
+        <ellipse cx="104" cy="102" rx="4" ry="6" fill="#5c554a"/>
+        <ellipse cx="156" cy="102" rx="4" ry="6" fill="#5c554a"/>
 
-    <!-- RIGHT ARM (angled to briefcase) -->
-    <path d="M 183 130 L 197 130 L 209 208 L 195 208 Z" fill="#0e0a05"/>
-    <circle cx="202" cy="212" r="9" fill="#5c554a"/>
+        <!-- hair -->
+        <path d="M 102 96 A 28 28 0 0 1 158 96 L 157 112 Q 130 105 103 112 Z" fill="#0e0a05"/>
+        <path d="M 104 88 Q 116 100 142 100 L 142 104 Q 124 104 110 108 Z" fill="#000"/>
+        <!-- tuft -->
+        <path d="M 124 76 Q 116 56 99 50 Q 110 66 122 84 Z" fill="#0e0a05"/>
 
-    <!-- BRIEFCASE — gray w/ black outline -->
-    <path d="M 180 204 Q 202 192 224 204" fill="none" stroke="#0e0a05" stroke-width="3" stroke-linecap="round"/>
-    <rect x="176" y="208" width="62" height="44" fill="#5c554a" stroke="#0e0a05" stroke-width="2.4"/>
-    <line x1="176" y1="220" x2="238" y2="220" stroke="#0e0a05" stroke-width="1.5"/>
-    <rect x="200" y="216" width="12" height="8" fill="#0e0a05"/>
-    <rect x="180" y="212" width="54" height="3" fill="#8b8474"/>
+        <!-- face -->
+        <path d="M 113 108 Q 119 106 124 108" fill="none" stroke="#0e0a05" stroke-width="2" stroke-linecap="round"/>
+        <path d="M 136 108 Q 141 106 147 108" fill="none" stroke="#0e0a05" stroke-width="2" stroke-linecap="round"/>
+        <ellipse cx="118" cy="115" rx="3" ry="2" fill="#0e0a05"/>
+        <ellipse cx="142" cy="115" rx="3" ry="2" fill="#0e0a05"/>
+        <path d="M 114 120 Q 118 122 122 120" fill="none" stroke="#5c554a" stroke-width="1.2"/>
+        <path d="M 138 120 Q 142 122 146 120" fill="none" stroke="#5c554a" stroke-width="1.2"/>
+        <path d="M 122 128 Q 130 125 138 128" fill="none" stroke="#0e0a05" stroke-width="1.8" stroke-linecap="round"/>
+      </g>
 
-    <!-- HEAD (gray photocopy skin) -->
-    <circle cx="130" cy="102" r="28" fill="#8b8474" stroke="#0e0a05" stroke-width="2"/>
-    <!-- ear hints -->
-    <ellipse cx="104" cy="102" rx="4" ry="6" fill="#5c554a"/>
-    <ellipse cx="156" cy="102" rx="4" ry="6" fill="#5c554a"/>
-
-    <!-- HAIR helmet -->
-    <path d="M 102 96 A 28 28 0 0 1 158 96 L 157 112 Q 130 105 103 112 Z" fill="#0e0a05"/>
-    <!-- side part -->
-    <path d="M 104 88 Q 116 100 142 100 L 142 104 Q 124 104 110 108 Z" fill="#000"/>
-    <!-- HAIR TUFT -->
-    <path d="M 124 76 Q 116 56 99 50 Q 110 66 122 84 Z" fill="#0e0a05"/>
-
-    <!-- FACE -->
-    <!-- eyebrows (worry) -->
-    <path d="M 113 108 Q 119 106 124 108" fill="none" stroke="#0e0a05" stroke-width="2" stroke-linecap="round"/>
-    <path d="M 136 108 Q 141 106 147 108" fill="none" stroke="#0e0a05" stroke-width="2" stroke-linecap="round"/>
-    <!-- eyes (clearly visible dots) -->
-    <ellipse cx="118" cy="115" rx="3" ry="2" fill="#0e0a05"/>
-    <ellipse cx="142" cy="115" rx="3" ry="2" fill="#0e0a05"/>
-    <!-- under-eye shadow -->
-    <path d="M 114 120 Q 118 122 122 120" fill="none" stroke="#5c554a" stroke-width="1.2"/>
-    <path d="M 138 120 Q 142 122 146 120" fill="none" stroke="#5c554a" stroke-width="1.2"/>
-    <!-- mouth -->
-    <path d="M 122 128 Q 130 125 138 128" fill="none" stroke="#0e0a05" stroke-width="1.8" stroke-linecap="round"/>
+    </g>
   </g>
 </svg>
