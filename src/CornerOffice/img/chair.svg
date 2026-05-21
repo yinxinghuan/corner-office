@@ -1,24 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 120" width="240" height="120">
   <!-- Office chair (moving platform) — photocopy version -->
   <defs>
-    <filter id="torn" x="-5%" y="-5%" width="110%" height="110%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.45" numOctaves="2" seed="33" result="n"/>
-      <feDisplacementMap in="SourceGraphic" in2="n" scale="5"/>
-    </filter>
     <filter id="ink-noise" x="-2%" y="-2%" width="104%" height="104%">
       <feTurbulence type="fractalNoise" baseFrequency="1.6" numOctaves="2" seed="31" result="n"/>
       <feColorMatrix in="n" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.30 0" result="s"/>
-      <feComposite in="s" in2="SourceGraphic" operator="in"/>
-      <feComposite in="SourceGraphic" in2="s" operator="over"/>
+      <feComposite in="s" in2="SourceGraphic" operator="in" result="clipped"/>
+      <feMerge>
+        <feMergeNode in="SourceGraphic"/>
+        <feMergeNode in="clipped"/>
+      </feMerge>
     </filter>
   </defs>
 
-  <!-- shadow + paper -->
-  <path d="M 12 16 L 228 12 L 230 110 L 10 106 Z"
-        fill="rgba(0,0,0,0.32)" transform="translate(4 5)" filter="url(#torn)"/>
-  <path d="M 12 16 L 228 12 L 230 110 L 10 106 Z"
-        fill="#ebe4d0" stroke="#1a140a" stroke-width="0.8" stroke-opacity="0.28"
-        filter="url(#torn)"/>
+  <!-- v3: no paper backing, no drop shadow. Chair on world page. -->
 
   <!-- ─── Red registration ghost ─── -->
   <g opacity="0.40" transform="translate(-3 -3)">
