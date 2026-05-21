@@ -19,7 +19,7 @@ export default function CornerOffice() {
 
   const [showLeaderboard, setShowLeaderboard] = useState(false);
 
-  const score = useGameScore('corner-office');
+  const score = useGameScore();
 
   // Submit each run's final floor exactly once. `stats` is a fresh object
   // per run, so identity comparison gives us idempotency without storing
@@ -88,8 +88,7 @@ export default function CornerOffice() {
           gameName="Corner Office"
           isInAigram={score.isInAigram}
           onClose={() => setShowLeaderboard(false)}
-          fetchGlobal={score.fetchGlobalLeaderboard}
-          fetchFriends={score.fetchFriendsLeaderboard}
+          fetch={score.fetchLeaderboard}
         />
       )}
     </div>
