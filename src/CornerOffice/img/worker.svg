@@ -1,12 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 320" width="256" height="320">
-  <!-- Worker v4 — no paper backing, no drop shadow. Just ink on world page.
-       The whole game is photocopy paper; the worker is an ink figure
-       printed on the same page as everything else. -->
+  <!-- Worker v5 — sticker / paper-doll style.
+       Cream body-shape silhouette (multiple unioned shapes, NOT a
+       rectangle) + dark torn stroke = "cut from a leaked photocopy"
+       cutout. The ink-noise filter bug from v0.5.2 is fixed, so no
+       more semi-transparent gray rectangle behind the figure. -->
   <defs>
-    <!-- ink-noise: rectangular noise -> clipped to source -> merged
-         under the source. Previous version referenced the unclipped
-         rectangular noise in the OVER step, which produced the gray
-         rectangle behind every sprite. -->
+    <!-- Torn-edge displacement for the cream silhouette shapes.
+         Pure feDisplacementMap on SourceGraphic — no flood, no
+         rectangular bg artifact. -->
+    <filter id="torn-paper" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.40" numOctaves="2" seed="11" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="6"/>
+    </filter>
+    <!-- Ink-noise — v0.5.3 fixed version (feMerge stack, no over-stipple ghost). -->
     <filter id="ink-noise" x="-2%" y="-2%" width="104%" height="104%">
       <feTurbulence type="fractalNoise" baseFrequency="1.6" numOctaves="2" seed="9" result="n"/>
       <feColorMatrix in="n" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.32 0" result="stipple"/>
@@ -18,7 +24,28 @@
     </filter>
   </defs>
 
-  <!-- ─── Red registration-shift ghost (offset -3,-3) ─── -->
+  <!-- ─── Group 1: paper-cutout silhouette (cream sticker shape) ─── -->
+  <!-- Six cream shapes that union into a body outline. Each shape sits
+       a few px wider/taller than the underlying ink so the cream
+       margin is clearly visible (8-10 px). Dark stroke = torn cut edge.
+       NO drop shadow — that's what was producing the rectangular halo. -->
+  <g filter="url(#torn-paper)" fill="#f7f0d8" stroke="#3a2f1a" stroke-width="3"
+     stroke-linejoin="round" paint-order="stroke fill">
+    <!-- head + tuft envelope -->
+    <ellipse cx="130" cy="100" rx="36" ry="42"/>
+    <!-- tuft cap, sits above head -->
+    <ellipse cx="112" cy="64" rx="20" ry="20"/>
+    <!-- torso + arms band -->
+    <rect x="54" y="118" width="160" height="120" rx="8"/>
+    <!-- briefcase extension -->
+    <rect x="170" y="198" width="80" height="62" rx="6"/>
+    <!-- left leg -->
+    <rect x="92" y="222" width="32" height="76" rx="6"/>
+    <!-- right leg -->
+    <rect x="132" y="222" width="32" height="76" rx="6"/>
+  </g>
+
+  <!-- ─── Group 2: red registration-shift ghost (offset -3,-3) ─── -->
   <g opacity="0.50" transform="translate(-3 -3)">
     <rect x="100" y="226" width="14" height="58" fill="#b22b1f"/>
     <rect x="140" y="226" width="14" height="58" fill="#b22b1f"/>
@@ -31,7 +58,7 @@
     <rect x="176" y="208" width="62" height="44" fill="#b22b1f"/>
   </g>
 
-  <!-- ─── Main ink figure ─── -->
+  <!-- ─── Group 3: main ink figure ─── -->
   <g id="ink" filter="url(#ink-noise)">
     <!-- legs -->
     <rect x="103" y="226" width="14" height="60" fill="#0e0a05"/>
@@ -41,8 +68,7 @@
 
     <!-- torso -->
     <path d="M 87 226 L 175 226 L 183 130 L 79 130 Z" fill="#0e0a05"/>
-    <!-- shirt V — use world paper color so it reads as a "see through" -->
-    <path d="M 118 130 L 142 130 L 130 162 Z" fill="#ebe4d0"/>
+    <path d="M 118 130 L 142 130 L 130 162 Z" fill="#f7f0d8"/>
     <path d="M 87 226 L 122 162 L 114 130 L 79 130 Z" fill="#3a352c"/>
     <path d="M 175 226 L 138 162 L 146 130 L 183 130 Z" fill="#3a352c"/>
     <rect x="160" y="174" width="10" height="6" fill="#b22b1f"/>

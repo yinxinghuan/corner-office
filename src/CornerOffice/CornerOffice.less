@@ -360,7 +360,7 @@
   &:active { transform: translateY(1px); }
 }
 
-// ─── Splash card (poster mode) ─────────────────────────────────────────
+// ─── Splash card (poster mode) — photocopy / leaked-memo ──────────────
 
 .co-splash {
   position: absolute;
@@ -369,64 +369,136 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  padding: 36px 24px 40px;
-  background: linear-gradient(180deg, #2a0612 0%, #11091a 60%, #060810 100%);
+  padding: 36px 24px 28px;
+  background: @paper;
+  background-image:
+    // subtle paper grain via repeating diagonal noise
+    radial-gradient(rgba(14,10,5,0.06) 1px, transparent 1.4px),
+    radial-gradient(rgba(14,10,5,0.04) 1px, transparent 1.4px);
+  background-size: 7px 7px, 11px 11px;
+  background-position: 0 0, 3px 5px;
   text-align: center;
 
-  // Darken footer band behind the title so the windows don't fight it
-  &::after {
-    content: '';
+  // ── 3-hole punch line on the left edge ──
+  &__holes {
     position: absolute;
-    inset: auto 0 0 0;
-    height: 42%;
-    background: linear-gradient(180deg,
-      rgba(6, 8, 16, 0) 0%,
-      rgba(6, 8, 16, 0.75) 45%,
-      rgba(6, 8, 16, 0.95) 100%);
-    pointer-events: none;
+    left: 14px;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    padding: 60px 0;
     z-index: 1;
+
+    span {
+      width: 14px;
+      height: 14px;
+      background: #0a0a05;
+      border-radius: 50%;
+      opacity: 0.78;
+    }
   }
 
-  &__tower {
+  // ── horizontal smudge bars ──
+  &__smudge {
     position: absolute;
-    inset: 0;
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-    opacity: 0.92;
-    svg { width: 78%; max-width: 320px; height: auto; }
+    background: rgba(14, 10, 5, 0.08);
+    pointer-events: none;
+    z-index: 1;
+
+    &--a { top: 38%; left: 40px; right: 32px; height: 3px; }
+    &--b { top: 78%; left: 80px; right: 90px; height: 2px; opacity: 0.6; }
   }
+
+  // ── FILE COPY tilted red rubber stamp top-right ──
+  &__stamp {
+    position: absolute;
+    top: 30px;
+    right: 22px;
+    transform: rotate(-7deg);
+    border: 2.5px solid @stamp;
+    color: @stamp;
+    font-family: @font-ui;
+    font-weight: 900;
+    font-size: 13px;
+    letter-spacing: 0.18em;
+    padding: 6px 12px;
+    background: transparent;
+    z-index: 2;
+  }
+
+  // ── Worker sticker ──
+  &__worker {
+    position: relative;
+    width: 56%;
+    max-width: 280px;
+    height: auto;
+    z-index: 2;
+    margin-bottom: 14px;
+    // Slight paper-tilt — like the cutout was placed on the page by hand
+    transform: rotate(-2.5deg);
+  }
+
+  // ── Title — STAMPED RED INK ──
   &__title {
     position: relative;
     font-family: @font-rye;
-    font-size: clamp(36px, 9vw, 64px);
-    color: @ink;
-    letter-spacing: 0.04em;
-    text-shadow:
-      0 0 14px rgba(193, 50, 42, 0.45),
-      0 4px 0  rgba(0,0,0,0.55);
-    margin-bottom: 6px;
+    font-size: clamp(42px, 11vw, 76px);
+    color: @stamp;
+    letter-spacing: 0.05em;
+    line-height: 0.92;
+    margin-bottom: 8px;
     z-index: 2;
+    transform: rotate(-1.2deg);
+    // Double-ink "misregistered stamp" effect — a slightly offset
+    // red ghost behind the main red.
+    text-shadow: 2px 2px 0 rgba(178, 43, 31, 0.30);
   }
   &__tagline {
     position: relative;
-    font-family: @font-display;
-    font-style: italic;
-    font-size: clamp(14px, 3.4vw, 18px);
+    font-family: @font-mono;
+    font-weight: 700;
+    font-size: clamp(12px, 3vw, 16px);
     color: @ink-50;
+    letter-spacing: 0.10em;
     margin-bottom: 22px;
     z-index: 2;
   }
+
+  // ── Coffee ring stain ──
+  &__coffee {
+    position: absolute;
+    left: 9%;
+    bottom: 8%;
+    width: 64px;
+    height: 64px;
+    border: 3px solid rgba(110, 60, 30, 0.45);
+    border-radius: 50%;
+    transform: rotate(8deg);
+    pointer-events: none;
+    z-index: 1;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 4px;
+      border: 1px solid rgba(70, 40, 20, 0.35);
+      border-radius: 50%;
+    }
+  }
+
+  // ── AlterU AFTER DARK chip ──
   &__chip {
     position: relative;
-    font-family: @font-ui;
-    font-weight: 800;
+    font-family: @font-mono;
+    font-weight: 700;
     font-size: 10px;
     letter-spacing: 0.30em;
-    color: @brand;
-    border: 1px solid @brand;
-    padding: 5px 10px;
-    border-radius: 3px;
+    color: @ink;
+    border: 1.5px solid @ink;
+    padding: 5px 12px;
+    background: @paper;
     z-index: 2;
   }
 }

@@ -414,13 +414,8 @@ export function drawPlayer(
   const drawX = -drawW / 2;
   const drawY = -drawH * feetAnchor;
 
-  // Shadow at the feet
-  ctx.save();
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.30)';
-  ctx.beginPath();
-  ctx.ellipse(cx, feetY + 2, PLAYER_W * scale * 0.40, 3 * scale, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
+  // (Removed: feet shadow ellipse. The worker is a paper sticker on
+  // a paper page — a cast shadow makes no sense for a flat cutout.)
 
   ctx.save();
   ctx.translate(cx, feetY);
